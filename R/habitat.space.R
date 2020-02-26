@@ -89,8 +89,8 @@ habitat.space <- function(data = NULL, cvars, rvar = NULL, grid.size = rep(30, l
         min.limit <- grid.limits[[i]][1]
         max.limit <- grid.limits[[i]][2]
       } else {
-        min.limit <- SuitableHabitat:::round_any(min(data[[svars[i]]]), rounding.level, floor)
-        max.limit <- SuitableHabitat:::round_any(max(data[[svars[i]]]), rounding.level, ceiling)
+        min.limit <- round_any(min(data[[svars[i]]]), rounding.level, floor)
+        max.limit <- round_any(max(data[[svars[i]]]), rounding.level, ceiling)
       }
       
       
@@ -168,11 +168,6 @@ habitat.space <- function(data = NULL, cvars, rvar = NULL, grid.size = rep(30, l
     }
     
   }
-  
-  
-  
-  
-  
   
   #####################
   ## Habitat space ####

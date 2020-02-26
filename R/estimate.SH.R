@@ -20,17 +20,14 @@
 #' @details The \code{\link[base]{dim}}ensions of NEMO input matrices must be equal.
 #' 
 #' If \code{polygonize} is set to \code{TRUE}, you need a functioning \code{gdal_polygonize.py} installed on your computer. The easiest way to install the script is to install QGIS 2.18 (earlier or later versions won't do).
-#' @import sp raster rgeos smoothr rgdal
+#' @import sp raster rgeos smoothr rgdal sf stars
 
 # Test parameters
-# lon = lon; lat = lat; depth = dpt; temp = d00s$temp$med; sal = d00s$sal$med; buffer.width = 15000; proj4 = "+proj=stere +lat_0=90 +lat_ts=71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"; lat.lim = 40; res = 400; limit.polygon = NULL; log.transform.depth = TRUE; find.lim.factors = FALSE; drop.crumbs = 1000
-# temp.range = c(lims$temp.min, lims$temp.max); depth.range = c(lims$depth.min, lims$depth.max); sal.range = c(lims$sal.min, lims$sal.max); polygonize = TRUE
-# limit.polygon = sdm.lims$Small$chull.shp; sal.range = c(lims$sal.min, lims$sal.max); polygonize = TRUE; depth.range = NULL; temp.range = NULL
-estimate.SH <- function(lon, lat, depth, temp, sal = NULL, limit.polygon = NULL, depth.range = NULL, temp.range = NULL, sal.range = c(NA, NA), polygonize = FALSE, buffer.width = 15000, proj4 = "+proj=stere +lat_0=90 +lat_ts=71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0", lat.lim = 40, res = 400, log.transform.depth = TRUE, find.lim.factors = FALSE, drop.crumbs = 1000) {
+# depth = dpt; temp = d00s$temp$mean; sal = d00s$sal$mean; habitat.space = out; polygonize = FALSE; buffer.width = 15000; proj4 = "+proj=stere +lat_0=90 +lat_ts=71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"; lat.lim = 40; res = 400; log.transform.depth = TRUE; find.lim.factors = FALSE; drop.crumbs = 1000
+
+estimate.SH <- function(lon, lat, depth, temp, sal = NULL, habitat.space, polygonize = FALSE, buffer.width = 15000, proj4 = "+proj=stere +lat_0=90 +lat_ts=71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0", lat.lim = 40, res = 400, log.transform.depth = TRUE, find.lim.factors = FALSE, drop.crumbs = 1000) {
   
   ## Checks
-  
-  if(all(c(is.null(limit.polygon), is.null(depth.range), is.null(temp.range)))) stop("either limit.polygon or depth.range and temp.range has to be specified.")
   
   ## Make the data frame ####
   
@@ -43,122 +40,67 @@ estimate.SH <- function(lon, lat, depth, temp, sal = NULL, limit.polygon = NULL,
   
   ## Suitable habitat
   
-  if(is.null(limit.polygon)) {
-    
-    ###############################
-    ## RECTANGULAR PREFERENCES ####
-    
-    if(length(depth.range) != 2) stop("depth.range must be length of 2. Use NA to ignore limits")
-    if(length(temp.range) != 2) stop("temp.range must be length of 2. Use NA to ignore limits")
-    if(!is.numeric(depth.range)) stop("depth.range must be a numeric vector")
-    if(!is.numeric(temp.range)) stop("temp.range must be a numeric vector")
-    
-    if (is.null(sal)) {
-      
-      limits <- list(depth.min = depth.range[1], depth.max = depth.range[2], temp.min = temp.range[1], temp.max = temp.range[2])
-      
+  tmp <- dt[c("temp", "depth")]
+  if(log.transform.depth) tmp$depth <- log10(tmp$depth)
+  
+  sps <- sp::SpatialPoints(tmp)
+  
+  habtab <- sp::over(sps, habitat.space$habitat.space.sp)
+  
+  if (is.null(habitat.space$ovars)) {
+    dt$habitat <- ifelse(!is.na(habtab), TRUE, NA)
+  } else {
+    if(length(habitat.space$ovars) == 1 && habitat.space$ovars == "sal" && !is.null(sal)) {
+      sal.range <- range(habitat.space$cvars[[habitat.space$ovars]])
+      dt$habitat <- ifelse(!is.na(habtab) & dt$sal <= sal.range[2] & dt$sal >= sal.range[1], TRUE, NA)
     } else {
-      
-      if(length(sal.range) != 2) stop("sal.range must be length of 2. Use NA to ignore limits")
-      if(!is.numeric(sal.range)) stop("sal.range must be a numeric vector")
-      
-      limits <- list(depth.min = depth.range[1], depth.max = depth.range[2], temp.min = temp.range[1], temp.max = temp.range[2], sal.min = sal.range[1], sal.max = sal.range[2])
+      stop("No other ovars implemented than sal (salinity)")
     }
+  }
+  
+  ### Limiting factors
+  
+  if (find.lim.factors) {
     
-    # i <- 3
-    tmp <- lapply(seq_along(limits), function(i) {
-      tmp <- limits[[i]]
-      
-      if (is.na(tmp)) {
-        var <- unlist(strsplit(names(limits)[i], "\\."))[1]
-        type <- unlist(strsplit(names(limits)[i], "\\."))[2]
-        rng <- range(dt[[var]], na.rm = TRUE)
-        
-        if (type == "min") {
-          rng[1] - 1
-        } else {
-          rng[2] + 1
-        }
-        
-      } else {
-        tmp
-      }
-    })
+    var.cols <- c(var.cols, "lim.factor")
     
-    names(tmp) <- names(limits)
-    limits <- tmp
+    temp.lims <- unname(limit.polygon@bbox[1,])
+    depth.lims <- unname(limit.polygon@bbox[2,])
     
     if(is.null(sal)) {
-      dt$habitat <- ifelse(dt$depth == 0, NA, ifelse(dt$depth <= limits$depth.max & dt$depth >= limits$depth.min & dt$temp <= limits$temp.max & dt$temp >= limits$temp.min, TRUE, NA))
+      
+      limfacdt <- data.frame(temp = tmp$temp >= temp.lims[1] & tmp$temp <= temp.lims[2], depth = tmp$depth >= depth.lims[1] & tmp$depth <= depth.lims[2])
+      dt$lim.factor <- ifelse(rowSums(limfacdt) == 2, "suitable", ifelse(limfacdt$temp, "depth", ifelse(limfacdt$depth, "temp", "both")))
+      
+      dt[is.na(dt$habitat) & dt$lim.factor == "suitable", "lim.factor"] <- "temp&depth"
+      dt[dt$temp == -999, "lim.factor"] <- NA
+      
     } else {
-      dt$habitat <- ifelse(dt$depth == 0, NA, ifelse(dt$depth <= limits$depth.max & dt$depth >= limits$depth.min & dt$temp <= limits$temp.max & dt$temp >= limits$temp.min & dt$sal <= limits$sal.max & dt$sal >= limits$sal.min, TRUE, NA))
+      
+      limfacdt <- data.frame(temp = tmp$temp >= temp.lims[1] & tmp$temp <= temp.lims[2], depth = tmp$depth >= depth.lims[1] & tmp$depth <= depth.lims[2], sal = dt$sal >= sal.range[1] & dt$sal <= sal.range[2])
+      
+      bla <- apply(limfacdt, 1, function(k) {
+        tmp <- c("temp", "depth", "sal")[!c("temp", "depth", "sal") %in% names(which(k))]
+        
+        if(length(tmp) == 0) {
+          "suitable"
+        } else if(length(tmp) == 1) {
+          tmp
+        } else if(length(tmp) == 3) {
+          "all"
+        } else {
+          paste(tmp, collapse = "&")
+        }
+      })
+      
+      dt$lim.factor <- unlist(bla)
+      
+      dt[is.na(dt$habitat) & dt$lim.factor == "suitable", "lim.factor"] <- "temp&depth"
+      dt[dt$sal == -999, "lim.factor"] <- NA
+      dt[dt$temp == -999, "lim.factor"] <- NA
     }
-    
-    rownames(dt) <- 1:nrow(dt)
-    
-    if(find.lim.factors) stop("find.lim.factors = TRUE has not been implemented for rectangular TD-spaces yet. Use limit.polygon to enable the feature or set find.limfactors = FALSE.")
-    
-  } else { 
-    
-    #####################
-    ## LIMIT POLYGON ####
-    
-    if(class(limit.polygon) != "SpatialPolygons") stop("limit.polygon has to be a SpatialPolygons object.")
-    
-    tmp <- dt[c("temp", "depth")]
-    if(log.transform.depth) tmp$depth <- log10(tmp$depth)
-    
-    sps <- sp::SpatialPoints(tmp)
-    
-    habtab <- sp::over(sps, limit.polygon)
-    
-    if (is.null(sal)) {
-      dt$habitat <- ifelse(!is.na(habtab), TRUE, NA)
-    } else {
-      dt$habitat <- ifelse(!is.na(habtab) & dt$sal <= sal.range[2] & dt$sal >= sal.range[1], TRUE, NA)
-    }
-    
-    if (find.lim.factors) {
-      
-      var.cols <- c(var.cols, "lim.factor")
-      
-      temp.lims <- unname(limit.polygon@bbox[1,])
-      depth.lims <- unname(limit.polygon@bbox[2,])
-      
-      if(is.null(sal)) {
-        
-        limfacdt <- data.frame(temp = tmp$temp >= temp.lims[1] & tmp$temp <= temp.lims[2], depth = tmp$depth >= depth.lims[1] & tmp$depth <= depth.lims[2])
-        dt$lim.factor <- ifelse(rowSums(limfacdt) == 2, "suitable", ifelse(limfacdt$temp, "depth", ifelse(limfacdt$depth, "temp", "both")))
-        
-        dt[is.na(dt$habitat) & dt$lim.factor == "suitable", "lim.factor"] <- "temp&depth"
-        dt[dt$temp == -999, "lim.factor"] <- NA
-        
-      } else {
-        
-        limfacdt <- data.frame(temp = tmp$temp >= temp.lims[1] & tmp$temp <= temp.lims[2], depth = tmp$depth >= depth.lims[1] & tmp$depth <= depth.lims[2], sal = dt$sal >= sal.range[1] & dt$sal <= sal.range[2])
-        
-        bla <- apply(limfacdt, 1, function(k) {
-          tmp <- c("temp", "depth", "sal")[!c("temp", "depth", "sal") %in% names(which(k))]
-          
-          if(length(tmp) == 0) {
-            "suitable"
-          } else if(length(tmp) == 1) {
-            tmp
-          } else if(length(tmp) == 3) {
-            "all"
-          } else {
-            paste(tmp, collapse = "&")
-          }
-        })
-        
-        dt$lim.factor <- unlist(bla)
-        
-        dt[is.na(dt$habitat) & dt$lim.factor == "suitable", "lim.factor"] <- "temp&depth"
-        dt[dt$sal == -999, "lim.factor"] <- NA
-        dt[dt$temp == -999, "lim.factor"] <- NA
-      }
-    } 
-  }
+  } 
+  
   
   
   
@@ -187,40 +129,16 @@ estimate.SH <- function(lon, lat, depth, temp, sal = NULL, limit.polygon = NULL,
     y <- raster::rasterize(p, r, p$habitat, fun=mean)
     sp::proj4string(y) <- "+proj=longlat +datum=WGS84"
     
-    y <- projectRaster(y, crs = proj4)
+    y <- raster::projectRaster(y, crs = proj4)
     
-    # pol <- gdal_polygonizeR(y)
-    pol <- raster::rasterToPolygons(y, dissolve = TRUE)
-    
-    # if(is.na(proj4string(pol))) sp::proj4string(pol) <- "+proj=longlat +datum=WGS84"
-    # pold <- sp::spTransform(pol, sp::CRS(proj4))
+    pol <- sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(y), as_points = FALSE, merge = TRUE))
     
     #### Merge adjacent polygons ###
-    
-    # pols <- sf::st_as_sf(pol)
-    
-    #### Crash site under ####
-    
-    # pols2 <- clusterSF(pols, units::set_units(500, km)) # From helpers
-    
-    # pold <- as(pols2, 'Spatial')
     
     pol <- rgeos::gBuffer(pol, byid = TRUE, width = buffer.width)
     pol <- rgeos::gBuffer(pol, byid = TRUE, width = -buffer.width)
     
-    ## Find optimal smooth parameters ####
-    # plot(pol, border = "red")
-    # plot(ksmooth_polys(x = pol, k = 20, N = 5L), add = T, border = "blue")
-    ## ####
-    
     pol2 <- ksmooth_polys(x = pol, k = 12, N = 5L) # From helpers
-    
-    #### Find optimal crumb drop size ####
-    # plot(pol, border = "red")
-    # plot(smoothr::drop_crumbs(pol, units::set_units(1000, km^2)), add = T, border = "blue")
-    #### ####
-    
-    #distr_poly <- pol2
     
     if (drop.crumbs != 0 | !is.na(drop.crumbs)) {
       distr_poly <- smoothr::drop_crumbs(pol2, units::set_units(drop.crumbs, km^2))
