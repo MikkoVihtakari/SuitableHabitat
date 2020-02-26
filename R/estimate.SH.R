@@ -21,6 +21,7 @@
 #' 
 #' If \code{polygonize} is set to \code{TRUE}, you need a functioning \code{gdal_polygonize.py} installed on your computer. The easiest way to install the script is to install QGIS 2.18 (earlier or later versions won't do).
 #' @import sp raster rgeos smoothr rgdal sf stars
+#' @export
 
 # Test parameters
 # depth = dpt; temp = d00s$temp$mean; sal = d00s$sal$mean; habitat.space = out; polygonize = FALSE; buffer.width = 15000; proj4 = "+proj=stere +lat_0=90 +lat_ts=71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"; lat.lim = 40; res = 400; log.transform.depth = TRUE; find.lim.factors = FALSE; drop.crumbs = 1000
