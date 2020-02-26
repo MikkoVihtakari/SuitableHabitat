@@ -1,9 +1,3 @@
----
-output: 
-  html_document: 
-    keep_md: yes
----
-
 # SuitableHabitat
 **R package to to estimate habitat spaces for geographic suitable habitat models**
 
