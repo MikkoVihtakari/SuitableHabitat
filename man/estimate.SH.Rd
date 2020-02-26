@@ -5,16 +5,10 @@
 \title{Estimate a suitable habitat for a species from NEMO output}
 \usage{
 estimate.SH(
-  lon,
-  lat,
-  depth,
-  temp,
-  sal = NULL,
   habitat.space,
-  polygonize = FALSE,
+  oceangr.model = NEMOdata,
   buffer.width = 15000,
- 
-    proj4 = "+proj=stere +lat_0=90 +lat_ts=71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0",
+  proj4 = polarStereographic,
   lat.lim = 40,
   res = 400,
   log.transform.depth = TRUE,
@@ -23,17 +17,9 @@ estimate.SH(
 )
 }
 \arguments{
-\item{lon}{Two dimensional longitude \strong{matrix} from a NEMO model. Must contain similar \code{\link[base]{dim}}ensions than \code{lat}}
+\item{habitat.space}{...}
 
-\item{lat}{Two dimensional latitude \strong{matrix} from a NEMO model. Must contain similar \code{\link[base]{dim}}ensions than \code{lon}}
-
-\item{depth}{Bottom depth matrix from a NEMO model. Must contain similar \code{\link[base]{dim}}ensions than \code{lon} and \code{lat}.}
-
-\item{temp}{Temperature matrix from a NEMO model. Must contain similar \code{\link[base]{dim}}ensions than \code{lon} and \code{lat}.}
-
-\item{sal}{Temperature matrix from a NEMO model. Must contain similar \code{\link[base]{dim}}ensions than \code{lon} and \code{lat}. Optional if \code{sal.range} is \code{c(NA, NA)}.}
-
-\item{polygonize}{Logical indicating whether the NEMO grid should be smoothed to polygons. Requires functioning gdal_polygonize.py installed on computer. See details.}
+\item{oceangr.model}{...}
 
 \item{buffer.width}{Single numeric value defining the \link[rgeos]{gBuffer} parameter for the smoothing of polygon output.}
 
@@ -46,14 +32,6 @@ estimate.SH(
 \item{log.transform.depth}{Logical indicating whether y-axis of the TD space (depth) should be log10 transformed. Use this option if the limit.polygon is calculated in log-space. Otherwise, set to FALSE. Ignored if \code{limit.polygon = NULL}.}
 
 \item{drop.crumbs}{Single numeric value specifying a threshold (area in km2) for small disconnected polygons which should be removed from the polygonized version of the suitable habitat. Set to 0 (or \code{NA}) to bypass the removal. Uses the \link[smoothr]{drop_crumbs} function.}
-
-\item{limit.polygon}{A \link[sp]{SpatialPolygons} object setting the temperature (x-axis) and depth (y-axis) limits for non-rectangular temperature-depth preferences.}
-
-\item{depth.range}{Numeric vector of two values setting the minimum and maximum depth to limit the suitable habitat. Use \code{NA} ignore a limit. Ignored if \code{limit.polygon} is specified.}
-
-\item{temp.range}{Numeric vector of two values setting the minimum and maximum temperature to limit the suitable habitat. Use \code{NA} ignore a limit. Ignored if \code{limit.polygon} is specified.}
-
-\item{sal.range}{Numeric vector of two values setting the minimum and maximum salinity to limit the suitable habitat. Use \code{NA} ignore a limit.}
 
 \item{find.lim.factos}{Logical indicating whether the function should which factors (if any) make the NEMO grid cell non-suitable habitat.}
 }

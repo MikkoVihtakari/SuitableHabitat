@@ -1,15 +1,7 @@
 #' @title Estimate a suitable habitat for a species from NEMO output
 #' @description Estimates suitable habitat for a species from European Modeling of the Ocean (NEMO) physical oceanography model output based on limitations set by temperature, salinity and bottom depth.
-#' @param lon Two dimensional longitude \strong{matrix} from a NEMO model. Must contain similar \code{\link[base]{dim}}ensions than \code{lat}
-#' @param lat Two dimensional latitude \strong{matrix} from a NEMO model. Must contain similar \code{\link[base]{dim}}ensions than \code{lon}
-#' @param depth Bottom depth matrix from a NEMO model. Must contain similar \code{\link[base]{dim}}ensions than \code{lon} and \code{lat}.
-#' @param temp Temperature matrix from a NEMO model. Must contain similar \code{\link[base]{dim}}ensions than \code{lon} and \code{lat}.
-#' @param sal Temperature matrix from a NEMO model. Must contain similar \code{\link[base]{dim}}ensions than \code{lon} and \code{lat}. Optional if \code{sal.range} is \code{c(NA, NA)}.
-#' @param limit.polygon A \link[sp]{SpatialPolygons} object setting the temperature (x-axis) and depth (y-axis) limits for non-rectangular temperature-depth preferences.
-#' @param depth.range Numeric vector of two values setting the minimum and maximum depth to limit the suitable habitat. Use \code{NA} ignore a limit. Ignored if \code{limit.polygon} is specified.
-#' @param temp.range Numeric vector of two values setting the minimum and maximum temperature to limit the suitable habitat. Use \code{NA} ignore a limit. Ignored if \code{limit.polygon} is specified.
-#' @param sal.range Numeric vector of two values setting the minimum and maximum salinity to limit the suitable habitat. Use \code{NA} ignore a limit. 
-#' @param polygonize Logical indicating whether the NEMO grid should be smoothed to polygons. Requires functioning gdal_polygonize.py installed on computer. See details.
+#' @param habitat.space ...
+#' @param oceangr.model ...
 #' @param log.transform.depth Logical indicating whether y-axis of the TD space (depth) should be log10 transformed. Use this option if the limit.polygon is calculated in log-space. Otherwise, set to FALSE. Ignored if \code{limit.polygon = NULL}.  
 #' @param buffer.width Single numeric value defining the \link[rgeos]{gBuffer} parameter for the smoothing of polygon output.
 #' @param proj4 Character argument specifying the \link[sp]{proj4string} (projection) for the smoothed polygon output.
@@ -24,15 +16,15 @@
 #' @export
 
 # Test parameters
-# depth = dpt; temp = d00s$temp$mean; sal = d00s$sal$mean; habitat.space = out; polygonize = FALSE; buffer.width = 15000; proj4 = "+proj=stere +lat_0=90 +lat_ts=71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"; lat.lim = 40; res = 400; log.transform.depth = TRUE; find.lim.factors = FALSE; drop.crumbs = 1000
+# habitat.space = out; oceangr.model = NEMOdata; buffer.width = 15000; proj4 = polarStereographic; lat.lim = 40; res = 400; log.transform.depth = TRUE; find.lim.factors = FALSE; drop.crumbs = 1000; polygonize = TRUE
 
-estimate.SH <- function(lon, lat, depth, temp, sal = NULL, habitat.space, polygonize = FALSE, buffer.width = 15000, proj4 = "+proj=stere +lat_0=90 +lat_ts=71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0", lat.lim = 40, res = 400, log.transform.depth = TRUE, find.lim.factors = FALSE, drop.crumbs = 1000) {
+estimate.SH <- function(habitat.space, oceangr.model = NEMOdata, buffer.width = 15000, proj4 = polarStereographic, lat.lim = 40, res = 400, log.transform.depth = TRUE, find.lim.factors = FALSE, drop.crumbs = 1000) {
   
   ## Checks
   
   ## Make the data frame ####
   
-  dt <- as.data.frame(cbind(lon = c(lon), lat = c(lat), depth = c(depth), temp = c(temp), sal = c(sal)))
+  dt <- as.data.frame(cbind(lon = c(NEMOdata$lon), lat = c(NEMOdata$lat), depth = c(NEMOdata$depth), temp = c(NEMOdata$temp), sal = c(NEMOdata$sal)))
   var.cols <- names(dt)[!names(dt) %in% c("lon", "lat")]
   if (!is.null(lat.lim)) {dt <- dt[dt$lat > lat.lim,]}
   dt[dt$depth < 1, "temp"] <- -999
@@ -51,7 +43,7 @@ estimate.SH <- function(lon, lat, depth, temp, sal = NULL, habitat.space, polygo
   if (is.null(habitat.space$ovars)) {
     dt$habitat <- ifelse(!is.na(habtab), TRUE, NA)
   } else {
-    if(length(habitat.space$ovars) == 1 && habitat.space$ovars == "sal" && !is.null(sal)) {
+    if(length(habitat.space$ovars) == 1 && habitat.space$ovars == "sal") {
       sal.range <- range(habitat.space$cvars[[habitat.space$ovars]])
       dt$habitat <- ifelse(!is.na(habtab) & dt$sal <= sal.range[2] & dt$sal >= sal.range[1], TRUE, NA)
     } else {
@@ -102,10 +94,6 @@ estimate.SH <- function(lon, lat, depth, temp, sal = NULL, habitat.space, polygo
     }
   } 
   
-  
-  
-  
-  
   ##########################################
   ### DATA PREPARATION FOR BOTH OPTIONS ####
   
@@ -116,8 +104,6 @@ estimate.SH <- function(lon, lat, depth, temp, sal = NULL, habitat.space, polygo
   spdt <- data.frame(sps)
   
   ### Polygonize the modeled distribution ###
-  
-  if (polygonize) {
     
     x <- na.omit(dt)
     x <- x[x$habitat,]
@@ -144,16 +130,15 @@ estimate.SH <- function(lon, lat, depth, temp, sal = NULL, habitat.space, polygo
     if (drop.crumbs != 0 | !is.na(drop.crumbs)) {
       distr_poly <- smoothr::drop_crumbs(pol2, units::set_units(drop.crumbs, km^2))
     }
-  }
+
   
   ##############
   ## Return ####
   
-  if (polygonize) {
-    list(polygons = distr_poly, actual = spdt)
-  } else {
-    list(polygons = NULL, actual = spdt)
-  }
+  out <- list(polygons = distr_poly, actual = spdt)
   
+  class(out) <- "SHmod"
+  
+  out
 }
 
