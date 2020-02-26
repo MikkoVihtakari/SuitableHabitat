@@ -34,3 +34,15 @@ vignettes/*.pdf
 
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
+
+# Rstudio project fies
+
+*.Rproj
+
+# Mac indexing files
+
+*.DS_Store
+
+# README
+
+README.html

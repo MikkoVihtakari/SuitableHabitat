@@ -1,0 +1,18 @@
+Package: SuitableHabitat
+Type: Package
+Title: SuitableHabitat - estimate habitat spaces for geographic suitable habitat models
+Version: 0.1.0
+Date: 2019-12-04
+Authors@R: c(person("Mikko", "Vihtakari", email = "mikko.vihtakari@hi.no",
+                  role = c("aut", "cre")) 
+          )
+URL: https://github.com/MikkoVihtakari/SuitableHabitat
+BugReports: https://github.com/MikkoVihtakari/SuitableHabitat/issues
+Description: comes here
+Depends: R (>= 3.5.0)
+Imports: ggplot2, ks, raster, rgdal, rgeos, sf, smoothr, sp, spatialEco
+Suggests: 
+License: MIT | file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.0.2
