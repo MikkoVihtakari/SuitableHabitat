@@ -10,23 +10,6 @@ round_any <- function(x, accuracy, f = round) {
   f(x / accuracy) * accuracy
 }
 
-#' @title Something
-#' @import sf
-
-clusterSF <- function(sfpolys, thresh){ ## From https://gis.stackexchange.com/questions/254519/group-and-union-polygons-that-share-a-border-in-r
-  dmat = sf::st_distance(sfpolys)
-  hc = hclust(as.dist(dmat>thresh), method="single")
-  groups = cutree(hc, h=0.5)
-  d = sf::st_sf(
-    geom = do.call(c,
-                   lapply(1:max(groups), function(g){
-                     sf::st_union(sfpolys[groups==g,])
-                   })
-    )
-  )
-  d$group = 1:nrow(d)
-  d
-}
 
 #' @title Wrapper to \code{\link[smoothr]{smooth_ksmooth}} SpatialPolygonsDataFrames
 #' @param x SpatialPolygonsDataFrame
@@ -45,7 +28,7 @@ ksmooth_polys <- function(x, k, N) {
     #setTxtProgressBar(pb, i)
     
     for(j in 1:length(x@polygons[[i]]@Polygons)) {
-      x@polygons[[i]]@Polygons[[j]]@coords <- na.omit(smoothr::smooth_ksmooth(x@polygons[[i]]@Polygons[[j]]@coords, smoothness = k, wrap = TRUE, n = N))
+      x@polygons[[i]]@Polygons[[j]]@coords <- stats::na.omit(smoothr::smooth_ksmooth(x@polygons[[i]]@Polygons[[j]]@coords, smoothness = k, wrap = TRUE, n = N))
     }
     
     x@polygons[[i]]
@@ -65,4 +48,7 @@ ksmooth_polys <- function(x, k, N) {
 se <- function(x) {
   sd(x, na.rm = T)/sqrt(sum(!is.na(x)))
 }
+
+# Define lobal variables
+utils::globalVariables(c("lon", "lat", "habitat", "long", "group", "km", "NEMOdata", "polarStereographic"))
 

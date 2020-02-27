@@ -4,20 +4,20 @@
 \alias{plot.SHmod}
 \title{Plot a suitable habitat model on a map}
 \usage{
-\method{plot}{SHmod}(mod, limits = "auto", ...)
+\method{plot}{SHmod}(x, limits = "auto", ...)
 }
 \arguments{
-\item{mod}{\code{SHmod} object from \code{\link{estimate.SH}} function.}
+\item{x}{\code{SHmod} object from \code{\link{suitable.habitat}} function.}
 
 \item{limits}{Map limits. See \code{\link{basemap}}. The option "auto" (default) limits the map using coordinate range of \code{mod}. Alternatively use a numeric vector as described in \code{\link[PlotSvalbard]{basemap}} documentation.}
 
 \item{...}{Additional arguments. Required by R build checks. Ignore.}
 }
 \description{
-Plot method for \code{\link[=estimate.SH]{SHmod}} objects.
+Plot method for \code{\link[=suitable.habitat]{SHmod}} objects.
 }
 \seealso{
-\code{\link{estimate.SH}} \code{\link{habitat.space}}
+\code{\link{suitable.habitat}} \code{\link{habitat.space}}
 }
 \author{
 Mikko Vihtakari

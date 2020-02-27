@@ -174,7 +174,7 @@ habitat.space <- function(data = NULL, cvars, log.transform = rep(FALSE, length(
       raster::extent(hab.sp.r) <- c(range(kd$eval.points[[1]]), range(kd$eval.points[[2]]))
       hab.sp.r <- raster::clump(hab.sp.r, directions = 4)
       
-      id.df <- na.omit(as.data.frame(raster::freq(hab.sp.r)))
+      id.df <- stats::na.omit(as.data.frame(raster::freq(hab.sp.r)))
       
       hab.sp.r[hab.sp.r != id.df[which.max(id.df$count),"value"]] <- NA
       
@@ -188,7 +188,7 @@ habitat.space <- function(data = NULL, cvars, log.transform = rep(FALSE, length(
       ## Convex hull correction
       
       if(chull.correction) {
-        hab.sp.ch.dt <- hab.sp.dt[chull(hab.sp.dt[svars]),]
+        hab.sp.ch.dt <- hab.sp.dt[grDevices::chull(hab.sp.dt[svars]),]
         hab.sp.ch.dt <- rbind(hab.sp.ch.dt[nrow(hab.sp.ch.dt),], hab.sp.ch.dt)
         rownames(hab.sp.ch.dt) <- 1:nrow(hab.sp.ch.dt)
         hab.sp.ch.p <- SpatialPolygonsDataFrame(

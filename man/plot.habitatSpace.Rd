@@ -4,10 +4,10 @@
 \alias{plot.habitatSpace}
 \title{Plot a habitat space}
 \usage{
-\method{plot}{habitatSpace}(mod, ...)
+\method{plot}{habitatSpace}(x, ...)
 }
 \arguments{
-\item{mod}{\code{habitatSpace} object from \code{\link{habitat.space}} function.}
+\item{x}{\code{habitatSpace} object from \code{\link{habitat.space}} function.}
 
 \item{...}{Additional graphical arguments. Required by R build checks. Ignore.}
 }
