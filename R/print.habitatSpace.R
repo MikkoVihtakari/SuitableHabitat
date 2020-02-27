@@ -27,5 +27,8 @@ print.habitatSpace <- function(x, ...) {
   } else {
     cat(x$ovars, sep = ", ")
   }
+  cat(NULL, sep = "\n")
+  cat(paste("Convex hull correction:", x$chull.correction), sep = "\n")
+  cat(paste0("Observations inside the model: ", round(x$model.fit$pr.in, 2), "%"), sep = "\n")
 }
 

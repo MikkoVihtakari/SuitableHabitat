@@ -7,6 +7,7 @@
 habitat.space(
   data = NULL,
   cvars,
+  log.transform = rep(FALSE, length(cvars)),
   rvar = NULL,
   grid.size = rep(30, length(cvars)),
   grid.limits = NULL,
@@ -19,6 +20,8 @@ habitat.space(
 \item{data}{data.frame containing the data for habitat space estimation. Required except when all limits are set orthogonal.}
 
 \item{cvars}{A named list defining the constraining variables for the habitat space. Each name refers to a variable name in \code{data} unless orthogonal limits are desired. In this case, the name refers to the variable name and the element must be a numeric vector of length two defining the minimum and maximum tolerance, respectively. If this is not the case, the variables are assumed simultaneously limiting and acquired from \code{data}. The variables will be plotted in the order given here with the first variable being understood as the x-axis, the second as the y-axis, the third as the z-axis, and so on. At the moment up to three list elements are allowed. This limit may be increased in future releases.}
+
+\item{log.transform}{A logical vector with the same length than \code{cvars} indicating whether the variables should be 10-based logarithm transformed before habitat space estimation.}
 
 \item{rvar}{a character argument specifying the column name for the response variable if not the same as the constraining variables (\code{cvars}). Set to \code{NULL} (default) to use the density of constraining variables as a response variable (i.e. presence-only data).}
 
@@ -45,7 +48,7 @@ Note that setting all limits to orthogonal will lead to a rectangular habitat sp
 The function estimates a multivariate habitat space for a species. The results of this function can be used in further plotting and suitable habitat estimation functions in the package.
 }
 \details{
-...
+The function retunrs only two dimensional habitat spaces at the moment.
 }
 \author{
 Mikko Vihtakari
