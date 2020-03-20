@@ -23,7 +23,7 @@ plot.SHmod <- function(x, limits = "auto", ...) {
   
   ## Basemap 
   
-  bm <- PlotSvalbard::basemap("panarctic", limits = limits, land.col = "grey", base_size = 8)
+  bm <- PlotSvalbard::basemap("panarctic", limits = limits, land.col = "grey", base_size = 8, ...)
   
   ## Map
   

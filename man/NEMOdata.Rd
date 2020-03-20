@@ -4,7 +4,9 @@
 \name{NEMOdata}
 \alias{NEMOdata}
 \title{Oceanographic NEMO model pan-Arctic data for the 00s}
-\format{NEMOdata}
+\format{
+NEMOdata
+}
 \usage{
 NEMOdata
 }

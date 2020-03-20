@@ -1,8 +1,8 @@
 Package: SuitableHabitat
 Type: Package
 Title: SuitableHabitat - estimate habitat spaces for geographic suitable habitat models
-Version: 0.1.3
-Date: 2020-02-27
+Version: 0.1.4
+Date: 2020-03-21
 Authors@R: c(person("Mikko", "Vihtakari", email = "mikko.vihtakari@hi.no",
                   role = c("aut", "cre")) 
           )
@@ -15,4 +15,4 @@ Suggests:
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0

@@ -4,7 +4,9 @@
 \name{polarStereographic}
 \alias{polarStereographic}
 \title{Character string containing the CRS projection used by the NEMO model}
-\format{character}
+\format{
+character
+}
 \usage{
 polarStereographic
 }

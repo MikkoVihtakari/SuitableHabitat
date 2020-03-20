@@ -37,6 +37,4 @@ Estimates suitable habitat for a species from European Modeling of the Ocean (NE
 }
 \details{
 The \code{\link[base]{dim}}ensions of NEMO input matrices must be equal.
-
-If \code{polygonize} is set to \code{TRUE}, you need a functioning \code{gdal_polygonize.py} installed on your computer. The easiest way to install the script is to install QGIS 2.18 (earlier or later versions won't do).
 }
