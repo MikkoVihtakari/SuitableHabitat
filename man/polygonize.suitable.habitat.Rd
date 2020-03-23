@@ -4,14 +4,12 @@
 \alias{polygonize.suitable.habitat}
 \title{Polygonize suitable habitat}
 \usage{
-polygonize.suitable.habitat(data, buffer.width, proj4, drop.crumbs, res)
+polygonize.suitable.habitat(data, buffer.width, drop.crumbs, res)
 }
 \arguments{
-\item{data}{a data frame from \code{\link{suitable.habitat}} function}
+\item{data}{a raster object from the \code{\link{rasterize.suitable.habitat}} function.}
 
 \item{buffer.width}{Single numeric value defining the \link[rgeos]{gBuffer} parameter for the smoothing of polygon output.}
-
-\item{proj4}{Character argument specifying the \link[sp]{proj4string} (projection) for the smoothed polygon output.}
 
 \item{drop.crumbs}{Single numeric value specifying a threshold (area in km2) for small disconnected polygons which should be removed from the polygonized version of the suitable habitat. Set to 0 (or \code{NA}) to bypass the removal. Uses the \link[smoothr]{drop_crumbs} function.}
 

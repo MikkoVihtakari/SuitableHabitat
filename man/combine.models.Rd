@@ -11,15 +11,14 @@ combine.models(
   x.breaks = NULL,
   buffer.width = 15000,
   drop.crumbs = 1000,
-  res = 500
+  res = 350,
+  hexbins = 100
 )
 }
 \arguments{
-\item{mod1, mod2}{...}
+\item{mod1, mod2}{\link[=suitable.habitat]{Suitable habitat models} to be be combined.}
 
-\item{y.breaks}{Latitude break for the model combination as a character vector including logical operators. For example \code{c("<2.5e6", ">=2.5e6")}}
-
-\item{x.breaks}{Not implemented.}
+\item{x.breaks, y.breaks}{Longitude and/or latitude breaks for the model combination as a character vector of length 2 including logical operators. The corresponding y/x intercept will be used to combine the model parts. Should be given as the model \code{\link[=suitable.habitat]{proj4}} units. For example \code{c("<2.5e6", ">=2.5e6")}}
 
 \item{buffer.width}{Single numeric value defining the \link[rgeos]{gBuffer} parameter for the smoothing of polygon output.}
 
@@ -27,7 +26,7 @@ combine.models(
 
 \item{res}{Vertical and horizontal resolution of the smoothed polygon output.}
 
-\item{proj4}{Character argument specifying the \link[sp]{proj4string} (projection) for the smoothed polygon output.}
+\item{hexbins}{A number of (xbins) used for the hexagonization. See \code{\link[hexbin]{hexbin}}.}
 }
 \description{
 Used to combine (currently only two) suitable habitat models based on (currently linear) geographic criteria

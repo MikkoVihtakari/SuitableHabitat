@@ -16,3 +16,4 @@ ksmooth_polys(x, k, N)
 \description{
 Wrapper to \code{\link[smoothr]{smooth_ksmooth}} SpatialPolygonsDataFrames
 }
+\keyword{internal}

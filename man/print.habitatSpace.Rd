@@ -14,9 +14,6 @@
 \description{
 \code{\link{print}} function for \code{\link[=habitat.space]{habitatSpace}} objects
 }
-\seealso{
-\code{\link{deg_grid}} \code{\link{basemap}}
-}
 \author{
 Mikko Vihtakari
 }

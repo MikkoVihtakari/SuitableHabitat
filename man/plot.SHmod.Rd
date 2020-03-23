@@ -4,12 +4,22 @@
 \alias{plot.SHmod}
 \title{Plot a suitable habitat model on a map}
 \usage{
-\method{plot}{SHmod}(x, limits = "auto", ...)
+\method{plot}{SHmod}(x, limits = "auto", type = "default", ...)
 }
 \arguments{
 \item{x}{\code{SHmod} object from \code{\link{suitable.habitat}} function.}
 
 \item{limits}{Map limits. See \code{\link{basemap}}. The option "auto" (default) limits the map using coordinate range of \code{mod}. Alternatively use a numeric vector as described in \code{\link[PlotSvalbard]{basemap}} documentation.}
+
+\item{type}{Character argument defining the types of model data to be plotted: 
+\itemize{
+\item \code{"raw"} Only raw data. I.e. the grid cell data directly from the oceanographic model.
+\item \code{"raster"} Only raster data. See \code{\link{suitable.habitat}} and \code{\link{rasterize.suitable.habitat}}
+\item \code{"polygon"} Only polygon data. See \code{\link{suitable.habitat}} and \code{\link{polygonize.suitable.habitat}}
+\item \code{"hexagon"} Only hexagon data. See \code{\link{suitable.habitat}} and \code{\link{hexagonize.suitable.habitat}}
+\item \code{"raw&raster"} Options \code{"raw"} and \code{"raster"} on top of each other.
+\item \code{"default"} Options \code{"raw"}, \code{"raster"}, and \code{"polygon"} on top of each other.
+}}
 
 \item{...}{Additional arguments. Required by R build checks. Ignore.}
 }

@@ -16,6 +16,8 @@ round_any <- function(x, accuracy, f = round) {
 #' @param k The \code{smoothness} parameter in \code{\link[smoothr]{smooth_ksmooth}}
 #' @param N The \code{n} parameter in \code{\link[smoothr]{smooth_ksmooth}}
 #' @import smoothr sp
+#' @keywords internal
+#' @export
 
 # Test parameters
 # x = pol; k = 12; N = 5L

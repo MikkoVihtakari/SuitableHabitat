@@ -6,7 +6,6 @@
 ##' @keywords internal
 ##' @export
 ##' @author Mikko Vihtakari
-##' @seealso \code{\link{deg_grid}} \code{\link{basemap}}
 
 print.habitatSpace <- function(x, ...) {
   

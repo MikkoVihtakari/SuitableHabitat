@@ -1,25 +1,31 @@
 #' @title Estimate a suitable habitat for a species from NEMO output
 #' @description Estimates suitable habitat for a species from European Modeling of the Ocean (NEMO) physical oceanography model output based on limitations set by temperature, salinity and bottom depth.
-#' @param habitat.space ...
-#' @param oceangr.model ...
+#' @param habitat.space An object from the \code{\link{habitat.space}} function.
+#' @param oceangr.model A list of oceanographic model data. The format should follow that examplified in the \link{NEMOdata} object.
 #' @param buffer.width Single numeric value defining the \link[rgeos]{gBuffer} parameter for the smoothing of polygon output.
 #' @param proj4 Character argument specifying the \link[sp]{proj4string} (projection) for the smoothed polygon output.
 #' @param lat.lim Single numeric value defining a latitude value which is used to cut the model data.
-#' @param res Vertical and horizontal resolution of the smoothed polygon output.
+#' @param res Vertical and horizontal resolution of the smoothed polygon output. Setting this parameter makes the polygons more connected cutting corners in the raster based model. 
 #' @param find.lim.factors Logical indicating whether the function should which factors (if any) make the NEMO grid cell non-suitable habitat. 
 #' @param drop.crumbs Single numeric value specifying a threshold (area in km2) for small disconnected polygons which should be removed from the polygonized version of the suitable habitat. Set to 0 (or \code{NA}) to bypass the removal. Uses the \link[smoothr]{drop_crumbs} function. 
-#' @details The \code{\link[base]{dim}}ensions of NEMO input matrices must be equal.
-#' @import sp raster rgeos smoothr rgdal sf stars units
+#' @param hexbins A number of (xbins) used for the hexagonization. See \code{\link[hexbin]{hexbin}}.
+#' @details The suitable habitat is estimated using the oceanographic model (\code{oceangr.model}) grid cells. The grid cell output are further manipulated using the \code{\link{rasterize.suitable.habitat}}, \code{\link{polygonize.suitable.habitat}}, and \code{\link{hexagonize.suitable.habitat}} functions.
+#' 
+#' The \code{\link[base]{dim}}ensions of NEMO input matrices must be equal. 
+#' @return Returns a list containing suitable habitat estimates in following formats: 1) \strong{\code{$raw}:} oceanographic model (\code{oceangr.model}) grid cells, 2) \strong{\code{$raster}:} rasterized cells whose resolution is defined by the \code{res} with disconnected regions smaller than the \code{drop.crumbs} parameter removed (in km2), 3) \strong{\code{$polygon}:} polgyonized raster data, and 4) \strong{\code{$hexagon}:} hexagonized raster data. See \code{\link[hexbin]{hexbin}}.
+#' @import sp raster rgeos smoothr rgdal sf stars units hexbin
 #' @importFrom grDevices chull
 #' @importFrom stats na.omit sd
 #' @export
 
 # Test parameters
-# habitat.space = td.general[[1]]; oceangr.model = NEMOdata; buffer.width = 15000; proj4 = polarStereographic; lat.lim = 40; res = 400; find.lim.factors = FALSE; drop.crumbs = 1000
+# habitat.space = td.general[[1]]; oceangr.model = NEMOdata; buffer.width = 15000; proj4 = polarStereographic; lat.lim = 40; res = 350; find.lim.factors = FALSE; drop.crumbs = 3e4; hexbins = 100
 
-suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, buffer.width = 15000, proj4 = polarStereographic, lat.lim = 40, res = 400, find.lim.factors = FALSE, drop.crumbs = 1000) {
+suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = polarStereographic, lat.lim = 40, res = 350, drop.crumbs = 3e4, buffer.width = 1.5e4, find.lim.factors = FALSE, hexbins = 100) {
   
   ## Checks
+  
+  if(proj4 != "+proj=stere +lat_0=90 +lat_ts=71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0") stop("Only the 'panarctic' projection in the PlotSvalbard package is currently supported.")
   
   ## Make the data frame ####
   
@@ -114,14 +120,22 @@ suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, buffer.wid
   spdt <- data.frame(sps)
   spdt <- spdt[names(spdt) != "optional"]
   
+  ### Rasterize and clump the modeled habitat ###
+  
+  ras_hab <- rasterize.suitable.habitat(data = spdt, proj4 = proj4, drop.crumbs = drop.crumbs, res = res)
+  
+  ### Hexagonize the rasterized habitat ###
+  
+  hex_hab <- hexagonize.suitable.habitat(data = ras_hab, hexbins = hexbins)
+  
   ### Polygonize the modeled distribution ###
   
-  distr_poly <- polygonize.suitable.habitat(data = spdt, buffer.width = buffer.width, proj4 = proj4, drop.crumbs = drop.crumbs, res = res)
+  distr_poly <- polygonize.suitable.habitat(data = ras_hab, buffer.width = buffer.width, drop.crumbs = drop.crumbs, res = res)
   
   ##############
   ## Return ####
   
-  out <- list(polygons = distr_poly, actual = spdt)
+  out <- list(raw = spdt, raster = ras_hab, polygon = distr_poly, hexagon = hex_hab)
   
   class(out) <- "SHmod"
   
