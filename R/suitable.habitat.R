@@ -38,6 +38,25 @@ suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = po
   dt[is.na(dt$sal), "sal"] <- -999
   dt <- dt[order(dt$lon, dt$lat),]
   
+  ## Model extent
+  
+  x <- dt[c("lon", "lat")]
+  x$lon_cut <- cut(x$lon, seq(-180,180,1))
+  levels(x$lon_cut) <- sapply(strsplit(gsub("\\(|\\]", "", levels(x$lon_cut)), ","), function(k) mean(as.numeric(k)))
+  x$lon_cut <- as.numeric(as.character(x$lon_cut))
+  
+  y <- x %>% group_by(lon_cut) %>% summarise(lat = min(lat))
+  y <- plyr::rename(y, c("lon_cut" = "lon"))
+  
+  z <- sp::SpatialLines(list(sp::Lines(sp::Line(y), ID = 1)))
+  sp::proj4string(z) <- "+proj=longlat +datum=WGS84"
+  
+  z <- sp::spTransform(z, sp::CRS(proj4))
+  
+  mod.ext <- sp::Polygons(list(sp::Polygon(coordinates(z))), ID = 1)
+  mod.ext <- sp::SpatialPolygons(list(mod.ext))
+  proj4string(mod.ext) <- proj4
+  
   ## Suitable habitat
   
   svars <- habitat.space$svars
@@ -135,7 +154,10 @@ suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = po
   ##############
   ## Return ####
   
-  out <- list(raw = spdt, raster = ras_hab, polygon = distr_poly, hexagon = hex_hab)
+  out <- list(raw = spdt, raster = ras_hab, polygon = distr_poly, hexagon = hex_hab, parameters = 
+                list(model.extent = mod.ext, model.proj = proj4, latitude.limit = lat.lim, raster.resolution = res,
+                     drop.crumbs = drop.crumbs, buffer.width = buffer.width, hexagon.resolution = hexbins)
+              )
   
   class(out) <- "SHmod"
   

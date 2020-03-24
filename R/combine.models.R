@@ -15,6 +15,8 @@ combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.
   
   if(sp::proj4string(mod1$raster) != sp::proj4string(mod2$raster)) stop("projection (proj4) has to be identical for mod1 and mod2")
   
+  mod.proj <- sp::proj4string(mod1$raster)
+  
   if(!is.null(x.breaks)) {
     if(!is.character(x.breaks)) stop("x.breaks has to be a character vector of length 2. Use numbers and logical operators to define the limits, e.g. '>=2.5e6'")
     if(length(x.breaks) != 2) stop("x.breaks has to be a character vector of length 2. Use numbers and logical operators to define the limits, e.g. '>=2.5e6'")
@@ -39,6 +41,28 @@ combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.
     spdt <- rbind(dt1, dt2)
   }
   
+  ## Model extent
+  
+  x <- sp::SpatialPoints(coords = spdt[c("lon", "lat")], proj4string = sp::CRS(mod.proj))
+  x <- sp::spTransform(x, sp::CRS("+proj=longlat +datum=WGS84"))
+  x <- data.frame(coordinates(x))
+  x$lon_cut <- cut(x$lon, seq(-180,180,1))
+  levels(x$lon_cut) <- sapply(strsplit(gsub("\\(|\\]", "", levels(x$lon_cut)), ","), function(k) mean(as.numeric(k)))
+  x$lon_cut <- as.numeric(as.character(x$lon_cut))
+  
+  y <- x %>% group_by(lon_cut) %>% summarise(lat = min(lat))
+  y <- plyr::rename(y, c("lon_cut" = "lon"))
+  
+  z <- sp::SpatialLines(list(sp::Lines(sp::Line(y), ID = 1)))
+  sp::proj4string(z) <- "+proj=longlat +datum=WGS84"
+  
+  z <- sp::spTransform(z, sp::CRS(mod.proj))
+  
+  mod.ext <- sp::Polygons(list(sp::Polygon(coordinates(z))), ID = 1)
+  mod.ext <- sp::SpatialPolygons(list(mod.ext))
+  proj4string(mod.ext) <- mod.proj
+  
+  
   ### Rasterize and clump the modeled habitat ###
   
   ras_hab <- rasterize.suitable.habitat(data = spdt, proj4 =  sp::proj4string(mod1$raster), drop.crumbs = drop.crumbs, res = res)
@@ -54,7 +78,14 @@ combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.
   ##############
   ## Return ####
   
-  out <- list(raw = spdt, raster = ras_hab, polygon = distr_poly, hexagon = hex_hab)
+  out <- list(raw = spdt, raster = ras_hab, polygon = distr_poly, hexagon = hex_hab, parameters = 
+                list(model.extent = mod.ext, model.proj = mod.proj, 
+                     latitude.limit = c(mod1$parameters$latitude.limit, mod2$parameters$latitude.limit), 
+                     raster.resolution = res,
+                     drop.crumbs = drop.crumbs, buffer.width = buffer.width, hexagon.resolution = hexbins,
+                     x.breaks = x.breaks, y.breaks = y.breaks)
+  )
+              
   
   class(out) <- "SHmod"
   

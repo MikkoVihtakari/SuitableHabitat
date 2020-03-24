@@ -1,8 +1,8 @@
 Package: SuitableHabitat
 Type: Package
 Title: SuitableHabitat - estimate habitat spaces for geographic suitable habitat models
-Version: 0.2.0
-Date: 2020-03-23
+Version: 0.2.1
+Date: 2020-03-24
 Authors@R: c(person("Mikko", "Vihtakari", email = "mikko.vihtakari@hi.no",
                   role = c("aut", "cre")) 
           )
