@@ -1,4 +1,4 @@
-##' @title Print habitat space (\code{SHmod}) objects
+##' @title Print suitable habitat model (\code{SHmod}) objects
 ##' @description \code{\link{print}} function for \code{\link[=suitable.habitat]{SHmod}} objects
 ##' @param x object to be printed.
 ##' @param ... further arguments passed to \code{\link{print}}.

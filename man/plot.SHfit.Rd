@@ -4,7 +4,16 @@
 \alias{plot.SHfit}
 \title{Plot a suitable habitat model on a map}
 \usage{
-\method{plot}{SHfit}(x, limits = "auto", type = "hexagon", base_size = 8, ...)
+\method{plot}{SHfit}(
+  x,
+  limits = "auto",
+  type = x$parameters$fit.method,
+  region.plot = x$parameters$regions,
+  capitalize.region.names = TRUE,
+  axis.labels = TRUE,
+  base_size = 8,
+  ...
+)
 }
 \arguments{
 \item{x}{\code{SHfit} object from the \code{\link{model.fit}} function.}

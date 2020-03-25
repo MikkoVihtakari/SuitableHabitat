@@ -2,7 +2,7 @@
 % Please edit documentation in R/print.SHmod.R
 \name{print.SHmod}
 \alias{print.SHmod}
-\title{Print habitat space (\code{SHmod}) objects}
+\title{Print suitable habitat model (\code{SHmod}) objects}
 \usage{
 \method{print}{SHmod}(x, ...)
 }

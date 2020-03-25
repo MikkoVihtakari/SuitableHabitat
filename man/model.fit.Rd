@@ -11,7 +11,7 @@ model.fit(mod, pts, regions = NULL, method = "hexagon")
 
 \item{pts}{\link[sp]{SpatialPoints} object containing observations of the species. If \code{proj4string} is missing, it is assumed to be equal to \code{mod}.}
 
-\item{regions}{}
+\item{regions}{A \link[sp]{SpatialPolygonsDataFrame} defining the region boundaries. The region identifier in \code{\@data} \strong{must be} named "region".}
 
 \item{method}{hexagon, raster, polygon}
 }
