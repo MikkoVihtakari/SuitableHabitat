@@ -9,8 +9,8 @@
   limits = "auto",
   type = x$parameters$fit.method,
   region.plot = x$parameters$regions,
-  capitalize.region.names = TRUE,
   axis.labels = TRUE,
+  title = "capitalize",
   base_size = 8,
   ...
 )
@@ -26,6 +26,8 @@
 \item \code{"hexagon"} Hexagon griding based model fit.
 \item \code{"raster"} Model fit based on raster grid.
 }}
+
+\item{title}{"capitalize", NA, anything else}
 
 \item{...}{Additional arguments to \code{\link[PlotSvalbard]{basemap}}}
 }

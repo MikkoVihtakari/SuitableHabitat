@@ -3,6 +3,7 @@
 S3method(plot,SHfit)
 S3method(plot,SHmod)
 S3method(plot,habitatSpace)
+S3method(print,NEMOdata)
 S3method(print,SHfit)
 S3method(print,SHmod)
 S3method(print,habitatSpace)

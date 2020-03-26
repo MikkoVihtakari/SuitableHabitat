@@ -8,6 +8,7 @@
 #' \item \code{"hexagon"} Hexagon griding based model fit.
 #' \item \code{"raster"} Model fit based on raster grid.
 #' }
+#' @param title "capitalize", NA, anything else
 #' @param ... Additional arguments to \code{\link[PlotSvalbard]{basemap}}
 #' @method plot SHfit
 #' @seealso \code{\link{suitable.habitat}} \code{\link{habitat.space}}
@@ -18,8 +19,8 @@
 #' @importFrom cowplot plot_grid
 #' @export
 
-# type = "default"
-plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, region.plot = x$parameters$regions, capitalize.region.names = TRUE, axis.labels = TRUE, base_size = 8, ...) {
+# limits = "auto"; type = x$parameters$fit.method; region.plot = x$parameters$regions; axis.labels = TRUE; title = "capitalize"; base_size = 8
+plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, region.plot = x$parameters$regions, axis.labels = TRUE, title = "capitalize", base_size = 8, ...) {
   
   # Tests
   
@@ -60,13 +61,61 @@ plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, regio
       tmp <- data.frame(do.call(rbind, tmp))
       
       limits <- c(min(tmp[1]), max(tmp[2]), min(tmp[3]), max(tmp[4]))
+    } else {
+      
+      reg.dat <- lapply(x$hexagon$regions, function(k) {
+        
+        reg <- as.character(unique(k[[1]]$region))
+        
+        ## Region borders
+        
+        reg.pol <- x$parameters$region.polygons[x$parameters$region.polygons@data$region == reg,]
+        reg.pol.dt <- suppressMessages(suppressWarnings(broom::tidy(reg.pol)))
+        names(reg.pol.dt)[names(reg.pol.dt) == "long"] <- "lon"
+        
+        limits <- PlotSvalbard::auto_limits("panarctic", limits = c("lon", "lat"), data = reg.pol.dt)
+        
+        if(!is.na(title)) {
+          if(title == "capitalize") reg <- gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", reg, perl=TRUE)
+        }
+        
+        list(limits = limits, reg.pol.dt = reg.pol.dt, reg = reg)
+        
+      })
+      
+      ## Aspect ratio
+      
+      asp.ratio <- lapply(reg.dat, function(k) {
+        lon.diff <- diff(k$limits[1:2])
+        lat.diff <- diff(k$limits[3:4])
+        
+        lon.diff/lat.diff
+      })
+      
+      smallest.asp <- names(which.min(abs(unlist(asp.ratio) - 1)))
+      
+      ## Increase the y limits to match the closest to 1 aspect ratio (makes plots equal size and more square)
+      
+      reg.dat[names(reg.dat)[!names(reg.dat) %in% smallest.asp]] <- lapply(reg.dat[names(reg.dat)[!names(reg.dat) %in% smallest.asp]], function(k) {
+        
+        target.lat <- diff(k$limits[1:2])/asp.ratio[[smallest.asp]]
+        current.lat <- diff(k$limits[3:4])
+        lat.increase <- (target.lat - current.lat) / 2
+        
+        k$limits[3] <- k$limits[3] - lat.increase
+        k$limits[4] <- k$limits[4] + lat.increase
+        
+        list(limits = k$limits, reg.pol.dt = k$reg.pol.dt, reg = k$reg)
+      })
+      
+      
     }
   } 
   
   ## Basemap 
   
   if(!region.plot) {
-    bm <- PlotSvalbard::basemap("panarctic", limits = limits, land.col = "grey", base_size = base_size, ...)
+    bm <- PlotSvalbard::basemap("panarctic", limits = limits, land.col = "grey80", base_size = base_size, ...)
     # debug alternative: bm <- PlotSvalbard::basemap("panarctic", limits = limits, land.col = "grey", base_size = 8)
   }
   
@@ -82,7 +131,14 @@ plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, regio
         ggspatial::geom_spatial_polygon(data = poldt, aes(x = lon, y = lat, group = group), fill = "#449BCF", color = "#449BCF", size = PlotSvalbard::LS(1), alpha = 0.3, crs = 4326) +
         geom_point(data = pointdt[pointdt$fit,], aes(x = lon, y = lat), pch = 21, color = "#82C893") +
         geom_point(data = pointdt[!pointdt$fit,], aes(x = lon, y = lat), pch = 21, color = "#FF5F68") +
-        add_land()
+        add_land() + {
+          if(!axis.labels) theme(axis.title = element_blank(), 
+                                 axis.text = element_blank(), 
+                                 axis.ticks = element_blank(),
+                                 axis.ticks.x = element_blank(), 
+                                 axis.ticks.y = element_blank()
+          )
+        }
       
     } else {
       stop("not implemented yet")
@@ -94,40 +150,46 @@ plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, regio
       
       bm +
         geom_hex(data = x$hexagon$all$unique_mod, 
-                 aes(x = lon, y = lat), fill = "#449BCF", stat = "identity", size = LS(0.5)) +
+                 aes(x = lon, y = lat), fill = "#449BCF", stat = "identity", size = PlotSvalbard::LS(0.5)) +
         geom_hex(data = x$hexagon$all$unique_obs, 
-                 aes(x = lon, y = lat), fill = "#FF5F68", stat = "identity", size = LS(0.5)) +
+                 aes(x = lon, y = lat), fill = "#FF5F68", stat = "identity", size = PlotSvalbard::LS(0.5)) +
         geom_hex(data = x$hexagon$all$overlapping, 
-                 aes(x = lon, y = lat), fill = "#82C893", stat = "identity", size = LS(0.5)) + 
-        add_land()
+                 aes(x = lon, y = lat), fill = "#82C893", stat = "identity", size = PlotSvalbard::LS(0.5)) + 
+        add_land() + {
+          if(!axis.labels) theme(axis.title = element_blank(), 
+                                 axis.text = element_blank(), 
+                                 axis.ticks = element_blank(),
+                                 axis.ticks.x = element_blank(), 
+                                 axis.ticks.y = element_blank()
+          )
+        }
       
     } else {
       
-      reg.plots <- lapply(x$hexagon$regions, function(k) {
-        
-        reg <- as.character(unique(k[[1]]$region))
-        
-        ## Region borders
-        
-        reg.pol <- x$parameters$region.polygons[x$parameters$region.polygons@data$region == reg,]
-        reg.pol.dt <- suppressMessages(suppressWarnings(broom::tidy(reg.pol)))
-        names(reg.pol.dt)[names(reg.pol.dt) == "long"] <- "lon"
-        
-        limits <- PlotSvalbard::auto_limits("panarctic", limits = c("lon", "lat"), data = reg.pol.dt)
-        
-        if(capitalize.region.names) reg <- gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", reg, perl=TRUE)
+      
+      reg.plots <- lapply(seq_along(reg.dat), function(i) {
         
         ## Plot
         
-        basemap("panarctic", limits = limits, base_size = base_size) +
-          geom_hex(data = k[["unique_mod"]], aes(x = lon, y = lat), fill = "#449BCF", stat = "identity", size = LS(0.5)) +
-          geom_hex(data = k[["unique_obs"]], aes(x = lon, y = lat), fill = "#FF5F68", stat = "identity", size = LS(0.5)) +
-          geom_hex(data = k[["overlapping"]], aes(x = lon, y = lat), fill = "#82C893", stat = "identity", size = LS(0.5)) +
-          geom_polygon(data = reg.pol.dt, aes(x = lon, y = lat, group = group), fill = NA, color = "black") +
-          ggtitle(reg) +
+        basemap("panarctic", limits = reg.dat[[i]]$limits, base_size = base_size, land.col = "grey80") +
+          geom_hex(data = x$hexagon$regions[[i]][["unique_mod"]], 
+                   aes(x = lon, y = lat), fill = "#449BCF", stat = "identity", size = PlotSvalbard::LS(0.5)) +
+          geom_hex(data = x$hexagon$regions[[i]][["unique_obs"]], 
+                   aes(x = lon, y = lat), fill = "#FF5F68", stat = "identity", size = PlotSvalbard::LS(0.5)) +
+          geom_hex(data = x$hexagon$regions[[i]][["overlapping"]], 
+                   aes(x = lon, y = lat), fill = "#82C893", stat = "identity", size = PlotSvalbard::LS(0.5)) +
+          geom_polygon(data = reg.dat[[i]]$reg.pol.dt, 
+                       aes(x = lon, y = lat, group = group), 
+                       fill = NA, color = "black", size = PlotSvalbard::LS(0.5), linetype = "longdash") +
           add_land() + {
-            if(!axis.labels) theme(axis.title = element_blank(), axis.text = element_blank())
-          }
+            if(!is.na(title)) ggtitle(reg.dat[[i]]$reg) } + {
+              if(!axis.labels) theme(axis.title = element_blank(), 
+                                     axis.text = element_blank(), 
+                                     axis.ticks = element_blank(),
+                                     axis.ticks.x = element_blank(), 
+                                     axis.ticks.y = element_blank()
+              )
+            }
         
       })
       

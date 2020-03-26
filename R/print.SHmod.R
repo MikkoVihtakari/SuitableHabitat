@@ -9,8 +9,6 @@
 
 print.SHmod <- function(x, ...) {
   
-  #Range <- data.frame(lon.deg = range(x$lon$lon), lat.deg = range(x$lat$lat), lon.utm = range(x$lon$lon.utm), lat.utm = range(x$lat$lat.utm))
-  
   cat("Suitable habitat model object")
   cat(paste(" of class", class(x)), sep = "\n")
   cat("Object size: ", sep = "")
