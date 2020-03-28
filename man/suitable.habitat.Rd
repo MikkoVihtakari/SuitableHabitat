@@ -12,7 +12,7 @@ suitable.habitat(
   res = 350,
   drop.crumbs = 30000,
   buffer.width = 15000,
-  find.lim.factors = FALSE,
+  find.lim.factors = TRUE,
   hexbins = 100
 )
 }

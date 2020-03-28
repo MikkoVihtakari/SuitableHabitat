@@ -2,7 +2,6 @@
 #' @description An internal function to polygonize suitable habitat data from the \code{\link{suitable.habitat}} function
 #' @param data a raster object from the \code{\link{rasterize.suitable.habitat}} function.
 #' @param buffer.width Single numeric value defining the \link[rgeos]{gBuffer} parameter for the smoothing of polygon output.
-#' @param res Vertical and horizontal resolution of the smoothed polygon output.
 #' @param drop.crumbs Single numeric value specifying a threshold (area in km2) for small disconnected polygons which should be removed from the polygonized version of the suitable habitat. Set to 0 (or \code{NA}) to bypass the removal. Uses the \link[smoothr]{drop_crumbs} function. 
 #' @import sp raster rgeos rgdal sf stars units
 #' @keywords internal
@@ -10,7 +9,7 @@
 #' @importFrom stats na.omit
 #' @export
 
-polygonize.suitable.habitat <- function(data, buffer.width, drop.crumbs, res) {
+polygonize.suitable.habitat <- function(data, buffer.width, drop.crumbs) {
   
   pol <- sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(data), as_points = FALSE, merge = TRUE))
   

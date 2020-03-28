@@ -19,9 +19,9 @@
 #' @export
 
 # Test parameters
-# habitat.space = td.general[[1]]; oceangr.model = NEMOdata; buffer.width = 15000; proj4 = polarStereographic; lat.lim = 40; res = 350; find.lim.factors = FALSE; drop.crumbs = 3e4; hexbins = 100
+# habitat.space = td.general[[1]]; oceangr.model = NEMOdata; buffer.width = 15000; proj4 = polarStereographic; lat.lim = 40; res = 350; find.lim.factors = TRUE; drop.crumbs = 3e4; hexbins = 100
 
-suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = polarStereographic, lat.lim = 40, res = 350, drop.crumbs = 3e4, buffer.width = 1.5e4, find.lim.factors = FALSE, hexbins = 100) {
+suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = polarStereographic, lat.lim = 40, res = 350, drop.crumbs = 3e4, buffer.width = 1.5e4, find.lim.factors = TRUE, hexbins = 100) {
   
   ## Checks
   
@@ -62,15 +62,15 @@ suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = po
   svars <- habitat.space$svars
   svars[svars == "bdepth"] <- "depth"
   
-  tmp <- dt[svars]
+  svars.dt <- dt[svars]
   
   log.transform.vars <- sapply(habitat.space$svar.info, function(k) k$log.transform)
   
   if(any(log.transform.vars)) {
-    tmp[log.transform.vars] <- lapply(tmp[log.transform.vars], function(k) log10(k))
+    svars.dt[log.transform.vars] <- lapply(svars.dt[log.transform.vars], function(k) log10(k))
   }
   
-  sps <- sp::SpatialPoints(tmp)
+  sps <- sp::SpatialPoints(svars.dt)
   
   habtab <- sp::over(sps, habitat.space$habitat.space.sp)
   
@@ -85,48 +85,11 @@ suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = po
     }
   }
   
-  ### Limiting factors
+  ## Limiting factors ####
   
   if (find.lim.factors) {
-    stop("Limiting factors code has not been finished")
-    # 
-    # var.cols <- c(var.cols, "lim.factor")
-    # 
-    # temp.lims <- unname(limit.polygon@bbox[1,])
-    # depth.lims <- unname(limit.polygon@bbox[2,])
-    # 
-    # if(is.null(sal)) {
-    #   
-    #   limfacdt <- data.frame(temp = tmp$temp >= temp.lims[1] & tmp$temp <= temp.lims[2], depth = tmp$depth >= depth.lims[1] & tmp$depth <= depth.lims[2])
-    #   dt$lim.factor <- ifelse(rowSums(limfacdt) == 2, "suitable", ifelse(limfacdt$temp, "depth", ifelse(limfacdt$depth, "temp", "both")))
-    #   
-    #   dt[is.na(dt$habitat) & dt$lim.factor == "suitable", "lim.factor"] <- "temp&depth"
-    #   dt[dt$temp == -999, "lim.factor"] <- NA
-    #   
-    # } else {
-    #   
-    #   limfacdt <- data.frame(temp = tmp$temp >= temp.lims[1] & tmp$temp <= temp.lims[2], depth = tmp$depth >= depth.lims[1] & tmp$depth <= depth.lims[2], sal = dt$sal >= sal.range[1] & dt$sal <= sal.range[2])
-    #   
-    #   bla <- apply(limfacdt, 1, function(k) {
-    #     tmp <- c("temp", "depth", "sal")[!c("temp", "depth", "sal") %in% names(which(k))]
-    #     
-    #     if(length(tmp) == 0) {
-    #       "suitable"
-    #     } else if(length(tmp) == 1) {
-    #       tmp
-    #     } else if(length(tmp) == 3) {
-    #       "all"
-    #     } else {
-    #       paste(tmp, collapse = "&")
-    #     }
-    #   })
-    #   
-    #   dt$lim.factor <- unlist(bla)
-    #   
-    #   dt[is.na(dt$habitat) & dt$lim.factor == "suitable", "lim.factor"] <- "temp&depth"
-    #   dt[dt$sal == -999, "lim.factor"] <- NA
-    #   dt[dt$temp == -999, "lim.factor"] <- NA
-    # }
+    dt <- limiting.factors(habitat.space = habitat.space, var.cols = var.cols, dt = dt, svars.dt = svars.dt)
+    var.cols <- c(var.cols, "lim.factor")
   } 
   
   ##########################################
@@ -141,7 +104,19 @@ suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = po
   
   ### Rasterize and clump the modeled habitat ###
   
-  ras_hab <- rasterize.suitable.habitat(data = spdt, proj4 = proj4, drop.crumbs = drop.crumbs, res = res)
+  ras_hab <- rasterize.suitable.habitat(data = spdt, proj4 = proj4, mod.extent = mod.ext, drop.crumbs = drop.crumbs, res = res)
+  
+  ### Add limiting factors
+  
+  if(find.lim.factors) {
+    
+    lim_fact <- rasterize.nonsuitable.habitat(data = spdt, proj4 = proj4, mod.extent = mod.ext, drop.crumbs = drop.crumbs, res = res)  
+    
+  } else {
+    
+    lim_fact <- NULL
+      
+  }
   
   ### Hexagonize the rasterized habitat ###
   
@@ -149,15 +124,15 @@ suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = po
   
   ### Polygonize the modeled distribution ###
   
-  distr_poly <- polygonize.suitable.habitat(data = ras_hab, buffer.width = buffer.width, drop.crumbs = drop.crumbs, res = res)
+  distr_poly <- polygonize.suitable.habitat(data = ras_hab, buffer.width = buffer.width, drop.crumbs = drop.crumbs)
   
   ##############
   ## Return ####
   
-  out <- list(raw = spdt, raster = ras_hab, polygon = distr_poly, hexagon = hex_hab, parameters = 
+  out <- list(raw = spdt, raster = ras_hab, polygon = distr_poly, hexagon = hex_hab, lim.fact = lim_fact, parameters = 
                 list(model.extent = mod.ext, model.proj = proj4, latitude.limit = lat.lim, raster.resolution = res,
-                     drop.crumbs = drop.crumbs, buffer.width = buffer.width, hexagon.resolution = hexbins)
-              )
+                     drop.crumbs = drop.crumbs, buffer.width = buffer.width, hexagon.resolution = hexbins, lim.factors = find.lim.factors)
+  )
   
   class(out) <- "SHmod"
   

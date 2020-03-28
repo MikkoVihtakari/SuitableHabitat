@@ -14,7 +14,7 @@
 # mod = gen_mod; pts = SpatialPoints(pres_dt[,c("lon.utm", "lat.utm")], proj4string = CRS(map_projection("panarctic"))); method = "hexagon"; regions = rgdal::readOGR("../../GIS/Pan-Arctic map/ghl_major_regions.shp")
 model.fit <- function(mod, pts, regions = NULL, method = "hexagon") {
   
-  ## Checks ###
+  ## Checks ####
   
   ### Check that crs is equal for all spatial objects 
   
@@ -75,9 +75,12 @@ model.fit <- function(mod, pts, regions = NULL, method = "hexagon") {
     tab <- data.frame(region = "all", nhex_noobs = nrow(df$unique_mod), nhex_out = nrow(df$unique_obs), nhex_in = nrow(df$overlapping), hex_n_out = sum(df$unique_obs$count_bin2), hex_n_in = sum(df$overlapping$count_bin2))
     
     tab$nhex <- tab$nhex_noobs + tab$nhex_out + tab$nhex_in
-    tab$pr_hex_out <- 100*tab$nhex_out/(tab$nhex_in + tab$nhex_noobs + tab$nhex_out)
-    tab$pr_hex_in <- 100*tab$nhex_in/(tab$nhex_in + tab$nhex_noobs)
-    tab$pr_n_in <- 100*tab$hex_n_in/(tab$hex_n_in + tab$hex_n_out)
+    tab$pr_hex_noobs <- 100*tab$nhex_noobs/tab$nhex
+    tab$pr_hex_in <- 100*tab$nhex_in/tab$nhex
+    tab$pr_hex_out <- 100*tab$nhex_out/tab$nhex
+    tab$N <- tab$hex_n_in + tab$hex_n_out
+    tab$pr_n_in <- 100*tab$hex_n_in/tab$N
+    tab$pr_n_out <- 100*tab$hex_n_out/tab$N
     
     fit_tab <- tab
     
@@ -121,15 +124,19 @@ model.fit <- function(mod, pts, regions = NULL, method = "hexagon") {
         tab <- data.frame(region = unique(k[[1]]$region), nhex_noobs = nrow(k$unique_mod), nhex_out = nrow(k$unique_obs), nhex_in = nrow(k$overlapping), hex_n_out = sum(k$unique_obs$count_bin2), hex_n_in = sum(k$overlapping$count_bin2))
         
         tab$nhex <- tab$nhex_noobs + tab$nhex_out + tab$nhex_in
-        tab$pr_hex_out <- 100*tab$nhex_out/(tab$nhex_in + tab$nhex_noobs + tab$nhex_out)
-        tab$pr_hex_in <- 100*tab$nhex_in/(tab$nhex_in + tab$nhex_noobs)
-        tab$pr_n_in <- 100*tab$hex_n_in/(tab$hex_n_in + tab$hex_n_out)
+        tab$pr_hex_noobs <- 100*tab$nhex_noobs/tab$nhex
+        tab$pr_hex_in <- 100*tab$nhex_in/tab$nhex
+        tab$pr_hex_out <- 100*tab$nhex_out/tab$nhex
+        tab$N <- tab$hex_n_in + tab$hex_n_out
+        tab$pr_n_in <- 100*tab$hex_n_in/tab$N
+        tab$pr_n_out <- 100*tab$hex_n_out/tab$N
         
         tab
       })
       
       fit_tab <- rbind(fit_tab, do.call(rbind, reg_tabs))
       rownames(fit_tab) <- 1:nrow(fit_tab)
+      
     } else {
       
       regdf <- NULL

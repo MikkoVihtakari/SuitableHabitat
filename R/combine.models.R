@@ -9,9 +9,10 @@
 #' @import sp raster 
 #' @export
  
-combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.width = 15000, drop.crumbs = 1000, res = 350, hexbins = 100) {
+# y.breaks = c("<2.5e6", ">=2.5e6"); x.breaks = NULL; buffer.width = 1.5e4; drop.crumbs = 3e4; res = 350; hexbins = 100
+combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.width = 1.5e4, drop.crumbs = 3e4, res = 350, hexbins = 100) {
   
-  ## Tests
+  ## Tests ####
   
   if(sp::proj4string(mod1$raster) != sp::proj4string(mod2$raster)) stop("projection (proj4) has to be identical for mod1 and mod2")
   
@@ -63,9 +64,9 @@ combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.
   proj4string(mod.ext) <- mod.proj
   
   
-  ### Rasterize and clump the modeled habitat ###
+  ### Rasterize and clump the modeled habitat ####
   
-  ras_hab <- rasterize.suitable.habitat(data = spdt, proj4 =  sp::proj4string(mod1$raster), drop.crumbs = drop.crumbs, res = res)
+  ras_hab <- rasterize.suitable.habitat(data = spdt, proj4 =  sp::proj4string(mod1$raster), mod.extent = mod.ext, drop.crumbs = drop.crumbs, res = res)
   
   ### Hexagonize the rasterized habitat ###
   
@@ -73,7 +74,7 @@ combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.
   
   ### Polygonize the modeled distribution ###
   
-  distr_poly <- polygonize.suitable.habitat(data = ras_hab, buffer.width = buffer.width, drop.crumbs = drop.crumbs, res = res)
+  distr_poly <- polygonize.suitable.habitat(data = ras_hab, buffer.width = buffer.width, drop.crumbs = drop.crumbs)
   
   ##############
   ## Return ####

@@ -2,13 +2,14 @@
 #' @description An internal function to rasterize suitable habitat data from the \code{\link{suitable.habitat}} function
 #' @param data a data frame from \code{\link{suitable.habitat}} function
 #' @param proj4 Character argument specifying the \link[sp]{proj4string} (projection) for the smoothed polygon output.
-#' @param drop.crumbs Single numeric value specifying a threshold (area in km2) for small disconnected polygons which should be removed from the polygonized version of the suitable habitat. Set to 0 (or \code{NA}) to bypass the removal. Uses the \link[smoothr]{drop_crumbs} function. 
+#' @param mod.extent The oceanographic model extent
+#' @param drop.crumbs Single numeric value specifying a threshold (area in km2) for small disconnected polygons which should be removed from the polygonized version of the suitable habitat. Set to 0 (or \code{NA}) to bypass the removal.
 #' @param res Vertical and horizontal resolution of the smoothed polygon output.
 #' @import sp raster
 #' @keywords internal
 #' @export
 
-rasterize.suitable.habitat <- function(data, proj4, drop.crumbs, res) {
+rasterize.suitable.habitat <- function(data, proj4, mod.extent = mod.ext, drop.crumbs, res) {
   
   x <- data[!is.na(data$habitat),] # Remove non-habitat
   
@@ -18,7 +19,7 @@ rasterize.suitable.habitat <- function(data, proj4, drop.crumbs, res) {
   
   # Rasterize
   
-  ext <- raster::extent(p)
+  ext <- raster::extent(mod.extent)
   r <- raster::raster(ext, ncol = res, nrow = res)
   y <- raster::rasterize(p, r, p$habitat, fun = mean)
   sp::proj4string(y) <- proj4

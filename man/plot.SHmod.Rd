@@ -18,6 +18,7 @@
 \item \code{"polygon"} Only polygon data. See \code{\link{suitable.habitat}} and \code{\link{polygonize.suitable.habitat}}
 \item \code{"hexagon"} Only hexagon data. See \code{\link{suitable.habitat}} and \code{\link{hexagonize.suitable.habitat}}
 \item \code{"raw&raster"} Options \code{"raw"} and \code{"raster"} on top of each other.
+\item \code{"lim.fact"} Limiting factors as raster data.
 \item \code{"default"} Options \code{"raw"}, \code{"raster"}, and \code{"polygon"} on top of each other.
 }}
 

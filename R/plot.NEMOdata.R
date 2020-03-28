@@ -1,53 +1,76 @@
-#' @title Plot a suitable habitat model on a map
-#' @description Plot method for \code{\link[=suitable.habitat]{SHmod}} objects.
-#' @param x \code{SHmod} object from \code{\link{suitable.habitat}} function.
-#' @param limits Map limits. See \code{\link{basemap}}. The option "auto" (default) limits the map using coordinate range of \code{mod}. Alternatively use a numeric vector as described in \code{\link[PlotSvalbard]{basemap}} documentation.
+#' @title Plot a NEMO data on a map
+#' @description Plot method for \code{\link[=NEMOdata]{NEMOdata}} objects.
+#' @param x \code{NEMOdata} object
+#' @param limits Map limits. See \code{\link{basemap}}. The option "auto" limits the map using coordinate range of \code{x}. Alternatively use a numeric vector as described in \code{\link[PlotSvalbard]{basemap}} documentation.
 #' @param type Character argument defining the types of model data to be plotted: 
 #' \itemize{
-#' \item \code{"raw"} Only raw data. I.e. the grid cell data directly from the oceanographic model.
-#' \item \code{"raster"} Only raster data. See \code{\link{suitable.habitat}} and \code{\link{rasterize.suitable.habitat}}
-#' \item \code{"polygon"} Only polygon data. See \code{\link{suitable.habitat}} and \code{\link{polygonize.suitable.habitat}}
-#' \item \code{"hexagon"} Only hexagon data. See \code{\link{suitable.habitat}} and \code{\link{hexagonize.suitable.habitat}}
-#' \item \code{"raw&raster"} Options \code{"raw"} and \code{"raster"} on top of each other.
-#' \item \code{"lim.fact"} Limiting factors as raster data.
-#' \item \code{"default"} Options \code{"raw"}, \code{"raster"}, and \code{"polygon"} on top of each other.
+#' \item \code{"depth"} Depth data as raster
+#' \item \code{"temp"} Temperature data as raster
+#' \item \code{"sal"} Salinity data as raster
+#' \item \code{"all"} All of the above
 #' }
 #' @param ... Additional arguments. Required by R build checks. Ignore.
-#' @method plot SHmod
-#' @seealso \code{\link{suitable.habitat}} \code{\link{habitat.space}}
+#' @method plot NEMOdata
 #' @author Mikko Vihtakari
-#' @import ggplot2 ggspatial 
+#' @import ggplot2
 #' @importFrom PlotSvalbard basemap LS
 #' @importFrom broom tidy
 #' @export
 
 # type = "default"
-plot.SHmod <- function(x, limits = "auto", type = "default", ...) {
+plot.NEMOdata <- function(x, limits = 40, type = "all", midpoint = NA, cutpoints = NA, ...) {
   
   # Tests
   
-  if(!type %in% c("raw", "raster", "polygon", "hexagon", "raw&raster", "lim.fact", "default")) stop("Invalid type argument. Use one of following: 'raw', 'raster', 'polygon', 'hexagon', 'raw&raster', 'lim.fact' or 'default'")
-  
-  if(type == "lim.fact" & !x$parameters$lim.factors) stop("No limiting factor data in x. Run the model suitable.habitat function using find.lim.factors = TRUE.")
+  # if(!type %in% c("raw", "raster", "polygon", "hexagon", "raw&raster", "lim.fact", "default")) stop("Invalid type argument. Use one of following: 'raw', 'raster', 'polygon', 'hexagon', 'raw&raster', 'lim.fact' or 'default'")
   
   # Data manipulation
   
-  if(type == "raw") {
+  dt <- data.frame(lon = c(x$lon), lat = c(x$lat), depth = c(x$depth), temp = c(x$temp), sal = c(x$sal))
+  dt <- dt[dt$lat > 40,]
+  dt[dt$depth < 1, "temp"] <- NA
+  dt[dt$depth < 1, "sal"] <- NA
+  
+  dt <- dt[order(dt$lon, dt$lat),]
+  
+  sps <- sp::SpatialPointsDataFrame(coords = dt[c("lon", "lat")], data = dt[c("depth", "temp", "sal")], proj4string = sp::CRS("+proj=longlat +datum=WGS84"))
+  sps <- spTransform(sps, CRS(polarStereographic))
+  spdt <- data.frame(sps)
+  
+  
+  if(!is.na(cutpoints)) {
     
-    limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = x$raw)
+    spdt[[type]]
+  }
+  
+  
+  if(limits == "auto") limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = spdt)
+  
+  bm <- PlotSvalbard::basemap("panarctic", limits = limits, land.col = "grey80", base_size = 8)
+  
+  if(type == "temp") {
     
-    rawdt <- x$raw[!is.na(x$raw$habitat),]
+    if(is.na(midpoint)) midpoint <- 7
     
-  } else if(type == "raw&raster") {
+    col.breaks <- sort(unique(c(-2, 0, 2.5, 5, 7.5, 10, 12.5, 15, midpoint)))
     
-    limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = x$raw)
+    bm + 
+      geom_tile(data = spdt, aes(x = lon, y = lat, color = temp, fill = temp), width = 1e4, height = 1e4) +
+      scale_color_gradient2(name = "Bottom\ntemperature", low = "blue4", high = scales::muted("red"), na.value = "grey", breaks = col.breaks, midpoint = midpoint) + 
+      scale_fill_gradient2(name = "Bottom\ntemperature", low = "blue4", high = scales::muted("red"), na.value = "grey", breaks = col.breaks, midpoint = midpoint) + 
+      add_land()
     
-    rawdt <- x$raw[!is.na(x$raw$habitat),]
+  } else if(type == "depth") {
     
-    rasdt <- data.frame(raster::coordinates(x$raster), area = x$raster@data@values)
-    rasdt <- rasdt[!is.na(rasdt$area),]
-    names(rasdt)[names(rasdt) == "x"] <- "lon"
-    names(rasdt)[names(rasdt) == "y"] <- "lat"
+    if(is.na(midpoint)) midpoint <- 1500
+    
+    col.breaks <- sort(unique(c(0, 250, 500, 750, 1000, 2000, 3000, 4000, 6000, midpoint)))
+    
+    bm + 
+      geom_tile(data = spdt, aes(x = lon, y = lat, color = depth, fill = depth), width = 1e4, height = 1e4) +
+      scale_color_gradient2(name = "Bottom\ndepth", low = "blue4", high = scales::muted("red"), na.value = "grey", breaks = col.breaks, midpoint = midpoint) + 
+      scale_fill_gradient2(name = "Bottom\ndepth", low = "blue4", high = scales::muted("red"), na.value = "grey", breaks = col.breaks, midpoint = midpoint) + 
+      add_land()
     
   } else if(type == "default") {
     
@@ -104,7 +127,7 @@ plot.SHmod <- function(x, limits = "auto", type = "default", ...) {
   
   ## Basemap 
   
-  bm <- PlotSvalbard::basemap("panarctic", limits = limits, land.col = "grey80", base_size = 8)
+  bm <- PlotSvalbard::basemap("panarctic", limits = limits, land.col = "grey", base_size = 8)
   
   ## Maps
   
@@ -113,7 +136,6 @@ plot.SHmod <- function(x, limits = "auto", type = "default", ...) {
     mp <- bm + 
       geom_tile(data = rawdt, aes(x = lon, y = lat), color = "#FF5F68", fill = "#FF5F68", width = 1e4, height = 1e4, alpha = 0.1)
     
-    # bm + geom_tile(data = rawdt, aes(x = lon, y = lat, color = lim.factor, fill = lim.factor), width = 1e4, height = 1e4) + add_land()
     
   } else if(type == "raw&raster") {
     

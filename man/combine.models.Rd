@@ -10,7 +10,7 @@ combine.models(
   y.breaks = NULL,
   x.breaks = NULL,
   buffer.width = 15000,
-  drop.crumbs = 1000,
+  drop.crumbs = 30000,
   res = 350,
   hexbins = 100
 )
