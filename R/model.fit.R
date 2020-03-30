@@ -11,7 +11,8 @@
 #' @export
 
 
-# mod = gen_mod; pts = SpatialPoints(pres_dt[,c("lon.utm", "lat.utm")], proj4string = CRS(map_projection("panarctic"))); method = "hexagon"; regions = rgdal::readOGR("../../GIS/Pan-Arctic map/ghl_major_regions.shp")
+# mod = gen_mod; pts = SpatialPoints(pres_dt[,c("lon.utm", "lat.utm")], proj4string = CRS(map_projection("panarctic"))); method = "hexagon"; regions = rgdal::readOGR("../../GIS/Pan-Arctic map/ghl_regions.shp")
+
 model.fit <- function(mod, pts, regions = NULL, method = "hexagon") {
   
   ## Checks ####
@@ -52,7 +53,7 @@ model.fit <- function(mod, pts, regions = NULL, method = "hexagon") {
   
   pts <- pts[!is.na(tmp)]
   
-  message("1/4. Setup done...")
+  message("Setup done...")
   
   ##########################
   ## The hexagon method ####
@@ -104,7 +105,7 @@ model.fit <- function(mod, pts, regions = NULL, method = "hexagon") {
       })
       
       region.list <- unique(as.character(unname(unlist(lapply(df, function(k) unique(k$region))))))
-      region.list <- region.list[!region.list %in% "other"]
+      # region.list <- region.list[!region.list %in% "other"]
       
       regdf <- lapply(region.list, function(j) {
         
@@ -118,10 +119,12 @@ model.fit <- function(mod, pts, regions = NULL, method = "hexagon") {
       
       ## Fit table
       
-      # k <- regdf[[1]]
-      reg_tabs <- lapply(regdf, function(k) {
+      # k <- regdf[[26]]
+      reg_tabs <- lapply(region.list, function(i) {
         
-        tab <- data.frame(region = unique(k[[1]]$region), nhex_noobs = nrow(k$unique_mod), nhex_out = nrow(k$unique_obs), nhex_in = nrow(k$overlapping), hex_n_out = sum(k$unique_obs$count_bin2), hex_n_in = sum(k$overlapping$count_bin2))
+        k <- regdf[[i]]
+  
+        tab <- data.frame(region = i, nhex_noobs = nrow(k$unique_mod), nhex_out = nrow(k$unique_obs), nhex_in = nrow(k$overlapping), hex_n_out = sum(k$unique_obs$count_bin2), hex_n_in = sum(k$overlapping$count_bin2))
         
         tab$nhex <- tab$nhex_noobs + tab$nhex_out + tab$nhex_in
         tab$pr_hex_noobs <- 100*tab$nhex_noobs/tab$nhex
@@ -149,7 +152,7 @@ model.fit <- function(mod, pts, regions = NULL, method = "hexagon") {
     hex.dat <- NULL
   }
   
-  message("2/4. Hexagon done...")
+  message("Hexagon done...")
   
   ##########################
   ## The polygon method ####
@@ -159,7 +162,7 @@ model.fit <- function(mod, pts, regions = NULL, method = "hexagon") {
     pts <- SpatialPointsDataFrame(pts, data = data.frame(fit = sp::over(pts, mod$polygon)[[1]]))
     pts@data$fit <- !is.na(pts@data$fit)
     
-    message("3/4. Spatial points done...")
+    message("Spatial points done...")
     
     ## Fit table
     
@@ -193,7 +196,7 @@ model.fit <- function(mod, pts, regions = NULL, method = "hexagon") {
     
     pol.dat <- list(summary = fit_tab, points = pts, model.polygon = mod$polygon)
     
-    message("4/4. Polygons done...")
+    message("Polygons done...")
     
   } else {
     pol.dat <- NULL

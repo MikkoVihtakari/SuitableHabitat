@@ -147,9 +147,9 @@ plot.SHmod <- function(x, limits = "auto", type = "default", legend.position = "
     
     mp <- bm + geom_tile(data = rasdt, aes(x = lon, y = lat, fill = level)) + 
       scale_fill_manual("Limiting factor", 
-                        breaks = c("crumbs", "depth", "depth&sal", "temp", "temp&depth", "temp&&depth", "temp&depth&sal", "temp&&depth&sal", "sal"), 
-                        labels = c("Habitat\nfragment", "Depth", "Depth &\nSalinity", "Temperature", "Temperature &\nDepth\n(simultanous)", "Temperature &\nDepth\n(orthogonal)", "Salinity &\nTemperature &\nDepth\n(simultanous)", "Salinity &\nTemperature &\nDepth\n(orthogonal)", "Salinity"),
-                        values = c("#FFAF62", "#449BCF", "#056A89", "#FF5F68", "#D696C8", "#B27DA6", "#accf44", "#8FAC38", "#44cf67")
+                        breaks = c("suitable", "crumbs", "depth", "depth&sal", "temp", "temp&depth", "temp&&depth", "temp&depth&sal", "temp&&depth&sal", "sal"), 
+                        labels = c("None", "Habitat\nfragment", "Depth", "Depth &\nSalinity", "Temperature", "Temperature &\nDepth\n(simultanous)", "Temperature &\nDepth\n(orthogonal)", "Salinity &\nTemperature &\nDepth\n(simultanous)", "Salinity &\nTemperature &\nDepth\n(orthogonal)", "Salinity"),
+                        values = c("#FFCC72", "#FF9252", "#449BCF", "#056A89", "#FF5F68", "#D696C8", "#B27DA6", "#accf44", "#8FAC38", "#44cf67")
       ) + 
       theme(legend.position = legend.position, 
             legend.key.height = unit(1.2, "cm")

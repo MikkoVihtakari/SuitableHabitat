@@ -23,11 +23,15 @@
 
 suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = polarStereographic, lat.lim = 40, res = 350, drop.crumbs = 3e4, buffer.width = 1.5e4, hexbins = 100, find.lim.factors = TRUE) {
   
+  # Progress bar ####
+  
+  pb <-  txtProgressBar(min = 0, max = 10, initial = 0, style = 3) 
+  
   ## Checks
   
   if(proj4 != "+proj=stere +lat_0=90 +lat_ts=71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0") stop("Only the 'panarctic' projection in the PlotSvalbard package is currently supported.")
   
-  ## Make the data frame ####
+  ## Make the data frame ###
   
   dt <- as.data.frame(cbind(lon = c(oceangr.model$lon), lat = c(oceangr.model$lat), depth = c(oceangr.model$depth), temp = c(oceangr.model$temp), sal = c(oceangr.model$sal)))
   
@@ -37,6 +41,8 @@ suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = po
   dt[dt$depth < 1, "temp"] <- -999
   dt[is.na(dt$sal), "sal"] <- -999
   dt <- dt[order(dt$lon, dt$lat),]
+  
+  setTxtProgressBar(pb, 1)
   
   ## Model extent
   
@@ -56,6 +62,8 @@ suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = po
   mod.ext <- sp::Polygons(list(sp::Polygon(coordinates(z))), ID = 1)
   mod.ext <- sp::SpatialPolygons(list(mod.ext))
   proj4string(mod.ext) <- proj4
+  
+  setTxtProgressBar(pb, 2)
   
   ## Suitable habitat
   
@@ -85,6 +93,8 @@ suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = po
     }
   }
   
+  setTxtProgressBar(pb, 3)
+  
   ## Limiting factors ###
   
   if (find.lim.factors) {
@@ -92,6 +102,7 @@ suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = po
     var.cols <- c(var.cols, "lim.factor")
   } 
   
+  setTxtProgressBar(pb, 4)
   
   ### Raw model output ###
   
@@ -100,9 +111,13 @@ suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = po
   spdt <- data.frame(sps)
   spdt <- spdt[names(spdt) != "optional"]
   
+  setTxtProgressBar(pb, 5)
+  
   ### Rasterize and clump the modeled habitat ####
   
   ras_hab <- rasterize.suitable.habitat(data = spdt, proj4 = proj4, mod.extent = mod.ext, drop.crumbs = drop.crumbs, res = res)
+  
+  setTxtProgressBar(pb, 6)
   
   ### Add limiting factors
   
@@ -116,13 +131,19 @@ suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = po
       
   }
   
+  setTxtProgressBar(pb, 7)
+  
   ### Hexagonize the rasterized habitat ###
   
   hex_hab <- hexagonize.suitable.habitat(data = ras_hab, hexbins = hexbins)
   
+  setTxtProgressBar(pb, 8)
+  
   ### Polygonize the modeled distribution ###
   
   distr_poly <- polygonize.suitable.habitat(data = ras_hab, buffer.width = buffer.width, drop.crumbs = drop.crumbs)
+  
+  setTxtProgressBar(pb, 9)
   
   ##############
   ## Return ####
@@ -133,6 +154,8 @@ suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = po
   )
   
   class(out) <- "SHmod"
+  
+  setTxtProgressBar(pb, 10)
   
   out
 }

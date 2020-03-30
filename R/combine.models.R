@@ -13,6 +13,10 @@
 # y.breaks = c("<2.5e6", ">=2.5e6"); x.breaks = NULL; buffer.width = 1.5e4; drop.crumbs = 3e4; res = 350; hexbins = 100
 combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.width = 1.5e4, drop.crumbs = 3e4, res = 350, hexbins = 100) {
   
+  # Progress bar ####
+  
+  pb <-  txtProgressBar(min = 0, max = 8, initial = 0, style = 3) 
+  
   ## Tests ####
   
   if(sp::proj4string(mod1$raster) != sp::proj4string(mod2$raster)) stop("projection (proj4) has to be identical for mod1 and mod2")
@@ -31,6 +35,8 @@ combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.
   
   find.lim.factors <- all(c(mod1$parameters$lim.factors, mod2$parameters$lim.factors))
   
+  setTxtProgressBar(pb, 1)
+  
   ## Subset
   
   if(!is.null(y.breaks)) {
@@ -44,6 +50,8 @@ combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.
     dt2 <- mod2$raw[eval(parse(text=paste("mod1$raw$lon", x.breaks[2]))),]
     spdt <- rbind(dt1, dt2)
   }
+  
+  setTxtProgressBar(pb, 2)
   
   ## Model extent
   
@@ -66,10 +74,13 @@ combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.
   mod.ext <- sp::SpatialPolygons(list(mod.ext))
   proj4string(mod.ext) <- mod.proj
   
+  setTxtProgressBar(pb, 3)
   
   ### Rasterize and clump the modeled habitat ####
   
   ras_hab <- rasterize.suitable.habitat(data = spdt, proj4 = mod.proj, mod.extent = mod.ext, drop.crumbs = drop.crumbs, res = res)
+  
+  setTxtProgressBar(pb, 4)
   
   ### Add limiting factors
   
@@ -83,13 +94,19 @@ combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.
     
   }
   
+  setTxtProgressBar(pb, 5)
+  
   ### Hexagonize the rasterized habitat ###
   
   hex_hab <- hexagonize.suitable.habitat(data = ras_hab, hexbins = hexbins)
   
+  setTxtProgressBar(pb, 6)
+  
   ### Polygonize the modeled distribution ###
   
   distr_poly <- polygonize.suitable.habitat(data = ras_hab, buffer.width = buffer.width, drop.crumbs = drop.crumbs)
+  
+  setTxtProgressBar(pb, 7)
   
   ##############
   ## Return ####
@@ -106,6 +123,8 @@ combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.
               
   
   class(out) <- "SHmod"
+  
+  setTxtProgressBar(pb, 8)
   
   out
   
