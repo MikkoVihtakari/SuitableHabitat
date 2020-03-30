@@ -12,8 +12,8 @@ suitable.habitat(
   res = 350,
   drop.crumbs = 30000,
   buffer.width = 15000,
-  find.lim.factors = TRUE,
-  hexbins = 100
+  hexbins = 100,
+  find.lim.factors = TRUE
 )
 }
 \arguments{
@@ -31,9 +31,9 @@ suitable.habitat(
 
 \item{buffer.width}{Single numeric value defining the \link[rgeos]{gBuffer} parameter for the smoothing of polygon output.}
 
-\item{find.lim.factors}{Logical indicating whether the function should which factors (if any) make the NEMO grid cell non-suitable habitat.}
-
 \item{hexbins}{A number of (xbins) used for the hexagonization. See \code{\link[hexbin]{hexbin}}.}
+
+\item{find.lim.factors}{Logical indicating whether the function should which factors (if any) make the NEMO grid cell non-suitable habitat.}
 }
 \value{
 Returns a list containing suitable habitat estimates in following formats: 1) \strong{\code{$raw}:} oceanographic model (\code{oceangr.model}) grid cells, 2) \strong{\code{$raster}:} rasterized cells whose resolution is defined by the \code{res} with disconnected regions smaller than the \code{drop.crumbs} parameter removed (in km2), 3) \strong{\code{$polygon}:} polgyonized raster data, and 4) \strong{\code{$hexagon}:} hexagonized raster data. See \code{\link[hexbin]{hexbin}}.

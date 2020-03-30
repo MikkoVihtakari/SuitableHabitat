@@ -4,7 +4,7 @@
 \alias{plot.SHmod}
 \title{Plot a suitable habitat model on a map}
 \usage{
-\method{plot}{SHmod}(x, limits = "auto", type = "default", ...)
+\method{plot}{SHmod}(x, limits = "auto", type = "default", legend.position = "right", ...)
 }
 \arguments{
 \item{x}{\code{SHmod} object from \code{\link{suitable.habitat}} function.}

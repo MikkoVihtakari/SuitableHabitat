@@ -6,6 +6,7 @@
 #' @param drop.crumbs Single numeric value specifying a threshold (area in km2) for small disconnected polygons which should be removed from the polygonized version of the suitable habitat. Set to 0 (or \code{NA}) to bypass the removal. Uses the \link[smoothr]{drop_crumbs} function. 
 #' @param res Vertical and horizontal resolution of the smoothed polygon output.
 #' @param hexbins A number of (xbins) used for the hexagonization. See \code{\link[hexbin]{hexbin}}.
+#' @details The function finds limiting factors if both \code{mod1} and \code{mod2} contain them.
 #' @import sp raster 
 #' @export
  
@@ -27,6 +28,8 @@ combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.
     if(!is.character(y.breaks)) stop("y.breaks has to be a character vector of length 2. Use numbers and logical operators to define the limits, e.g. '>=2.5e6'")
     if(length(y.breaks) != 2) stop("y.breaks has to be a character vector of length 2. Use numbers and logical operators to define the limits, e.g. '>=2.5e6'")
   }
+  
+  find.lim.factors <- all(c(mod1$parameters$lim.factors, mod2$parameters$lim.factors))
   
   ## Subset
   
@@ -66,7 +69,19 @@ combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.
   
   ### Rasterize and clump the modeled habitat ####
   
-  ras_hab <- rasterize.suitable.habitat(data = spdt, proj4 =  sp::proj4string(mod1$raster), mod.extent = mod.ext, drop.crumbs = drop.crumbs, res = res)
+  ras_hab <- rasterize.suitable.habitat(data = spdt, proj4 = mod.proj, mod.extent = mod.ext, drop.crumbs = drop.crumbs, res = res)
+  
+  ### Add limiting factors
+  
+  if(find.lim.factors) {
+    
+    lim_fact <- rasterize.nonsuitable.habitat(data = spdt, proj4 = mod.proj, mod.extent = mod.ext, drop.crumbs = drop.crumbs, res = res)  
+    
+  } else {
+    
+    lim_fact <- NULL
+    
+  }
   
   ### Hexagonize the rasterized habitat ###
   
@@ -79,11 +94,13 @@ combine.models <- function(mod1, mod2, y.breaks = NULL, x.breaks = NULL, buffer.
   ##############
   ## Return ####
   
-  out <- list(raw = spdt, raster = ras_hab, polygon = distr_poly, hexagon = hex_hab, parameters = 
+  out <- list(raw = spdt, raster = ras_hab, polygon = distr_poly, hexagon = hex_hab, lim.fact = lim_fact,
+              parameters = 
                 list(model.extent = mod.ext, model.proj = mod.proj, 
                      latitude.limit = c(mod1$parameters$latitude.limit, mod2$parameters$latitude.limit), 
                      raster.resolution = res,
                      drop.crumbs = drop.crumbs, buffer.width = buffer.width, hexagon.resolution = hexbins,
+                     lim.factors = find.lim.factors,
                      x.breaks = x.breaks, y.breaks = y.breaks)
   )
               

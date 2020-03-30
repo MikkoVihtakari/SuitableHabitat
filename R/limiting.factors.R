@@ -5,6 +5,7 @@
 #' @param dt Data frame from the \code{\link{suitable.habitat}} function.
 #' @param svars.dt Data frame from the \code{\link{suitable.habitat}} function.
 #' @keywords internal
+#' @seealso \code{\link{rasterize.nonsuitable.habitat}}
 #' @export
 
 limiting.factors <- function(habitat.space, var.cols, dt, svars.dt) {
@@ -65,6 +66,15 @@ limiting.factors <- function(habitat.space, var.cols, dt, svars.dt) {
   
   dt <- dt[!names(dt) %in% c("temp.lim", "depth.lim")]
   levels(dt$lim.factor)[levels(dt$lim.factor) == "land"] <- NA
+  
+  fact.ord <- c("suitable", "depth", "depth&sal", "temp", "temp&depth", "temp&&depth", "temp&depth&sal", "temp&&depth&sal")
+  fact.ord <- c(fact.ord, levels(dt$lim.factor)[!levels(dt$lim.factor) %in% fact.ord])
+  dt$lim.factor <- factor(dt$lim.factor, levels = fact.ord)
+  
+  dt <- droplevels(dt)
+  
+  # levels(dt$lim.factor)[levels(dt$lim.factor) == "suitable"] <- NA
+  
   ## Return
   
   dt

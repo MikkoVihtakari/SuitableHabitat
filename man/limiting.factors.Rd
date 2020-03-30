@@ -18,4 +18,7 @@ limiting.factors(habitat.space, var.cols, dt, svars.dt)
 \description{
 An internal function to calculate factors limiting suitable habitat used in the \code{\link{suitable.habitat}} function
 }
+\seealso{
+\code{\link{rasterize.nonsuitable.habitat}}
+}
 \keyword{internal}

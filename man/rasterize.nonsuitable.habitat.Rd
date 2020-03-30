@@ -20,4 +20,7 @@ rasterize.nonsuitable.habitat(
 \description{
 An internal function to rasterize non-suitable habitat data from the \code{\link{suitable.habitat}} function
 }
+\seealso{
+\code{\link{limiting.factors}} \code{\link{plot.SHmod}}
+}
 \keyword{internal}

@@ -18,6 +18,7 @@ print.SHmod <- function(x, ...) {
   cat(NULL, sep = "\n")
   cat(paste("Projection:", sp::proj4string(x$raster)), sep = "\n")
   cat(paste("Extent:", round(raster::extent(x$raster), 0)), sep = "\n")
+  cat(paste("Limiting factors:", x$parameters$lim.factors), sep = "\n")
   cat(NULL, sep = "\n")
   cat("$raw ", sep = " ")
   cat(paste0("(nrow: ", nrow(x$raw), ", ncol: ", ncol(x$raw), ")"), sep = "\n")

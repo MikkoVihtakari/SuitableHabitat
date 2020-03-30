@@ -21,7 +21,7 @@
 # Test parameters
 # habitat.space = td.general[[1]]; oceangr.model = NEMOdata; buffer.width = 15000; proj4 = polarStereographic; lat.lim = 40; res = 350; find.lim.factors = TRUE; drop.crumbs = 3e4; hexbins = 100
 
-suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = polarStereographic, lat.lim = 40, res = 350, drop.crumbs = 3e4, buffer.width = 1.5e4, find.lim.factors = TRUE, hexbins = 100) {
+suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = polarStereographic, lat.lim = 40, res = 350, drop.crumbs = 3e4, buffer.width = 1.5e4, hexbins = 100, find.lim.factors = TRUE) {
   
   ## Checks
   
@@ -85,24 +85,22 @@ suitable.habitat <- function(habitat.space, oceangr.model = NEMOdata, proj4 = po
     }
   }
   
-  ## Limiting factors ####
+  ## Limiting factors ###
   
   if (find.lim.factors) {
     dt <- limiting.factors(habitat.space = habitat.space, var.cols = var.cols, dt = dt, svars.dt = svars.dt)
     var.cols <- c(var.cols, "lim.factor")
   } 
   
-  ##########################################
-  ### DATA PREPARATION FOR BOTH OPTIONS ####
   
-  ### Actual model output ###
+  ### Raw model output ###
   
   sps <- sp::SpatialPointsDataFrame(coords = dt[c("lon", "lat")], data = dt[c(var.cols, "habitat")], proj4string = sp::CRS("+proj=longlat +datum=WGS84"))
   sps <- sp::spTransform(sps, sp::CRS(proj4))
   spdt <- data.frame(sps)
   spdt <- spdt[names(spdt) != "optional"]
   
-  ### Rasterize and clump the modeled habitat ###
+  ### Rasterize and clump the modeled habitat ####
   
   ras_hab <- rasterize.suitable.habitat(data = spdt, proj4 = proj4, mod.extent = mod.ext, drop.crumbs = drop.crumbs, res = res)
   

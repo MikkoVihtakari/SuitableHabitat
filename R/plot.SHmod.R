@@ -22,7 +22,7 @@
 #' @export
 
 # type = "default"
-plot.SHmod <- function(x, limits = "auto", type = "default", ...) {
+plot.SHmod <- function(x, limits = "auto", type = "default", legend.position = "right", ...) {
   
   # Tests
   
@@ -34,13 +34,13 @@ plot.SHmod <- function(x, limits = "auto", type = "default", ...) {
   
   if(type == "raw") {
     
-    limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = x$raw)
+    if(limits == "auto") limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = x$raw)
     
     rawdt <- x$raw[!is.na(x$raw$habitat),]
     
   } else if(type == "raw&raster") {
     
-    limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = x$raw)
+    if(limits == "auto") limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = x$raw)
     
     rawdt <- x$raw[!is.na(x$raw$habitat),]
     
@@ -51,7 +51,7 @@ plot.SHmod <- function(x, limits = "auto", type = "default", ...) {
     
   } else if(type == "default") {
     
-    limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = x$raw)
+    if(limits == "auto") limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = x$raw)
     
     rawdt <- x$raw[!is.na(x$raw$habitat),]
     
@@ -70,14 +70,14 @@ plot.SHmod <- function(x, limits = "auto", type = "default", ...) {
     names(rasdt)[names(rasdt) == "x"] <- "lon"
     names(rasdt)[names(rasdt) == "y"] <- "lat"
     
-    limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = rasdt)
+    if(limits == "auto") limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = rasdt)
     
   } else if(type == "polygon") {
     
     poldt <- suppressMessages(suppressWarnings(broom::tidy(x$polygon)))
     names(poldt)[names(poldt) == "long"] <- "lon"
     
-    limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = poldt)
+    if(limits == "auto") limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = poldt)
     
   } else if(type == "hexagon") {
     
@@ -85,7 +85,7 @@ plot.SHmod <- function(x, limits = "auto", type = "default", ...) {
     names(hexdt)[names(hexdt) == "x"] <- "lon"
     names(hexdt)[names(hexdt) == "y"] <- "lat"
     
-    limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = hexdt)
+    if(limits == "auto") limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = hexdt)
     
   } else if(type == "lim.fact") {
     
@@ -93,12 +93,12 @@ plot.SHmod <- function(x, limits = "auto", type = "default", ...) {
     rasdt <- rasdt[!is.na(rasdt$level),]
     
     tmp <- x$lim.fact@data@attributes[[1]]
-    levels(rasdt$level)[tmp$ID] <- as.character(tmp$level)
+    levels(rasdt$level) <- as.character(tmp$VALUE)
     
     names(rasdt)[names(rasdt) == "x"] <- "lon"
     names(rasdt)[names(rasdt) == "y"] <- "lat"
     
-    limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = rasdt)
+    if(limits == "auto") limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = rasdt)
     
   }
   
@@ -147,9 +147,13 @@ plot.SHmod <- function(x, limits = "auto", type = "default", ...) {
     
     mp <- bm + geom_tile(data = rasdt, aes(x = lon, y = lat, fill = level)) + 
       scale_fill_manual("Limiting factor", 
-                        breaks = c("all", "depth", "depth&sal", "sal", "temp", "temp&depth"), 
-                        labels = c("All", "Depth", "Depth &\nSalinity", "Salinity", "Temperature", "Temperture &\nDepth"),
-                        values = c("#D696C8", "#449BCF", "#82C893", "#056A89", "#FF5F68", "#FF9252", "#FFC95B"))
+                        breaks = c("crumbs", "depth", "depth&sal", "temp", "temp&depth", "temp&&depth", "temp&depth&sal", "temp&&depth&sal", "sal"), 
+                        labels = c("Habitat\nfragment", "Depth", "Depth &\nSalinity", "Temperature", "Temperature &\nDepth\n(simultanous)", "Temperature &\nDepth\n(orthogonal)", "Salinity &\nTemperature &\nDepth\n(simultanous)", "Salinity &\nTemperature &\nDepth\n(orthogonal)", "Salinity"),
+                        values = c("#FFAF62", "#449BCF", "#056A89", "#FF5F68", "#D696C8", "#B27DA6", "#accf44", "#8FAC38", "#44cf67")
+      ) + 
+      theme(legend.position = legend.position, 
+            legend.key.height = unit(1.2, "cm")
+      )
     
   }
   

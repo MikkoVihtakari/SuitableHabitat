@@ -31,3 +31,6 @@ combine.models(
 \description{
 Used to combine (currently only two) suitable habitat models based on (currently linear) geographic criteria
 }
+\details{
+The function finds limiting factors if both \code{mod1} and \code{mod2} contain them.
+}
