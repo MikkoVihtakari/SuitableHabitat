@@ -105,7 +105,7 @@ model.fit <- function(mod, pts, regions = NULL, method = "hexagon") {
       })
       
       region.list <- unique(as.character(unname(unlist(lapply(df, function(k) unique(k$region))))))
-      # region.list <- region.list[!region.list %in% "other"]
+      region.list <- region.list[!region.list %in% "other"]
       
       regdf <- lapply(region.list, function(j) {
         
@@ -244,31 +244,3 @@ model.fit <- function(mod, pts, regions = NULL, method = "hexagon") {
   out
   
 }
-
-
-
-### Scrap code:
-
-# # k <- df[[1]]
-# 
-# 
-# ## Alpha cut
-# # 
-# # tmp <- sapply(df, function(k) {
-# #   if(any(names(k) %in% "count_bin2")) {
-# #     range(k$count_bin2)
-# #   }
-# # })
-# # 
-# # tmp <- range(unname(unlist(tmp)))
-# # alpha.cut <- pretty(tmp)
-# # 
-# # df <- lapply(df, function(k) {
-# #   
-# #   if(any(names(k) %in% "count_bin2")) {
-# #     k$alpha <- as.numeric(cut(k$count_bin2, alpha.cut))
-# #     k
-# #   } else {k}
-# #   
-# # })
-# # 

@@ -4,8 +4,10 @@
 ##' @param ... further arguments passed to \code{\link{print}}.
 ##' @method print habitatSpace
 ##' @keywords internal
+##' @importFrom utils object.size
 ##' @export
 ##' @author Mikko Vihtakari
+##' @seealso \code{\link{basemap}}
 
 print.habitatSpace <- function(x, ...) {
   
@@ -28,6 +30,7 @@ print.habitatSpace <- function(x, ...) {
   }
   cat(NULL, sep = "\n")
   cat(paste("Convex hull correction:", x$chull.correction), sep = "\n")
+  cat(paste("Sensitivity analysis:", !is.null(x$sensitivity)), sep = "\n")
   cat(paste0("Observations inside the model: ", round(x$model.fit$pr.in, 2), "%"), sep = "\n")
 }
 

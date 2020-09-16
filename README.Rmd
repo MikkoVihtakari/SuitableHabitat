@@ -1,8 +1,16 @@
 ---
-output: 
-  html_document: 
-    keep_md: yes
+output: github_document
 ---
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  message = FALSE, 
+  warning = FALSE,
+  comment = "#>",
+  fig.path = "man/figures/README-"
+)
+```
 
 # SuitableHabitat
 **R package to estimate habitat spaces for geographic suitable habitat models**

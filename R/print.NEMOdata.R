@@ -4,6 +4,7 @@
 ##' @param ... further arguments passed to \code{\link{print}}.
 ##' @method print NEMOdata
 ##' @keywords internal
+##' @importFrom utils object.size
 ##' @export
 ##' @author Mikko Vihtakari
 
@@ -13,7 +14,7 @@ print.NEMOdata <- function(x, ...) {
   cat(names(x), sep = ", ")
   cat(NULL, sep = "\n")
   cat(NULL, sep = "\n")
-  cat(paste0("File size ", format(object.size(x), units = "Mb")), sep = "\n")
+  cat(paste0("File size ", format(utils::object.size(x), units = "Mb")), sep = "\n")
   cat(NULL, sep = "\n")
   cat("Bottom temperature data (use $temp to index):", sep = "\n")
   cat(paste0(nrow(x$temp), " rows. ", ncol(x$temp), " columns."), sep = "\n")

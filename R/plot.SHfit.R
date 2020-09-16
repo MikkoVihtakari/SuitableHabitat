@@ -1,7 +1,7 @@
 #' @title Plot a suitable habitat model on a map
 #' @description Plot method for \code{\link[=model.fit]{SHfit}} objects.
 #' @param x \code{SHfit} object from the \code{\link{model.fit}} function.
-#' @param limits Map limits. See \code{\link{basemap}}. The option "auto" (default) limits the map using coordinate range of \code{mod}. Alternatively use a numeric vector as described in \code{\link[PlotSvalbard]{basemap}} documentation.
+#' @param limits Map limits. See \code{\link{basemap}}. The option "auto" (default) limits the map using coordinate range of \code{mod}. Alternatively use a numeric vector as described in \code{\link[ggOceanMaps]{basemap}} documentation.
 #' @param type Character argument defining the types of model data to be plotted: 
 #' \itemize{
 #' \item \code{"polygon"} Model fit based on polygons and spatial points,
@@ -9,22 +9,29 @@
 #' \item \code{"raster"} Model fit based on raster grid.
 #' }
 #' @param title "capitalize", NA, anything else
-#' @param ... Additional arguments to \code{\link[PlotSvalbard]{basemap}}
+#' @param base_size Base size parameter for ggplot. See \link[ggplot2]{theme_bw}.
+#' @param land.col Character code specifying the color of land.
+#' @param region.plot Logical indicating whether region fit should be plotted
+#' @param axis.labels Logical indicating whether axis labels should be included to the maps.
+#' @param ... Additional arguments passed to \code{\link[ggOceanMaps]{basemap}}.
 #' @method plot SHfit
 #' @seealso \code{\link{suitable.habitat}} \code{\link{habitat.space}}
 #' @author Mikko Vihtakari
 #' @import ggplot2 ggspatial 
-#' @importFrom PlotSvalbard basemap LS
+#' @importFrom ggOceanMaps basemap LS
 #' @importFrom broom tidy
 #' @importFrom cowplot plot_grid
 #' @export
 
-# limits = "auto"; type = x$parameters$fit.method; region.plot = x$parameters$regions; axis.labels = TRUE; title = "capitalize"; base_size = 8
-plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, region.plot = x$parameters$regions, axis.labels = TRUE, title = "capitalize", base_size = 8, ...) {
+# limits = "auto"; type = x$parameters$fit.method; region.plot = x$parameters$regions; axis.labels = TRUE; title = "capitalize"; base_size = 8; land.col = "grey80"
+plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, region.plot = x$parameters$regions, axis.labels = TRUE, title = "capitalize", base_size = 8, land.col = "grey80", ...) {
   
-  # Tests
+  # Tests & definitions
   
   if(!type %in% c("raster", "polygon", "hexagon")) stop("Invalid type argument. Use one of following: 'raster', 'polygon', or 'hexagon'")
+  
+  limits.lon <- 1e5
+  limits.lat <- 1e5
   
   # Data manipulation for non-region plots
   
@@ -47,7 +54,7 @@ plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, regio
       poldt <- suppressMessages(suppressWarnings(broom::tidy(x$polygon$model.polygon)))
       names(poldt)[names(poldt) == "long"] <- "lon"
       
-      limits <- PlotSvalbard::auto_limits(type = "panarctic", limits = c("lon", "lat"), data = pointdt) 
+      limits <- suppressWarnings(ggOceanMaps::auto_limits(pointdt, proj.in = "+init=epsg:3995", proj.out = "+init=epsg:3995", verbose = FALSE))$projLimits
     }
     
   } else if(type == "hexagon") {
@@ -55,12 +62,14 @@ plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, regio
     if(!region.plot) {
       
       tmp <- lapply(x$hexagon$all, function(j) {
-        matrix(PlotSvalbard::auto_limits("panarctic", limits = c("lon", "lat"), data = j), nrow = 1)
+        matrix(suppressWarnings(ggOceanMaps::auto_limits(j, proj.in = "+init=epsg:3995", proj.out = "+init=epsg:3995", verbose = FALSE))$projLimits, nrow = 1)
+        # c(ggOceanMaps::round_any(min(j$lon), limits.lon, floor), ggOceanMaps::round_any(max(j$lon), limits.lon, ceiling), ggOceanMaps::round_any(min(j$lat), limits.lat, floor), ggOceanMaps::round_any(max(j$lat), limits.lat, ceiling))
       })
       
       tmp <- data.frame(do.call(rbind, tmp))
       
       limits <- c(min(tmp[1]), max(tmp[2]), min(tmp[3]), max(tmp[4]))
+      
     } else {
       
       reg.dat <- lapply(x$hexagon$regions, function(k) {
@@ -73,7 +82,7 @@ plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, regio
         reg.pol.dt <- suppressMessages(suppressWarnings(broom::tidy(reg.pol)))
         names(reg.pol.dt)[names(reg.pol.dt) == "long"] <- "lon"
         
-        limits <- PlotSvalbard::auto_limits("panarctic", limits = c("lon", "lat"), data = reg.pol.dt)
+        limits <- suppressWarnings(ggOceanMaps::auto_limits(reg.pol.dt, proj.in = "+init=epsg:3995", proj.out = "+init=epsg:3995", verbose = FALSE))$projLimits
         
         if(!is.na(title)) {
           if(title == "capitalize") reg <- gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", reg, perl=TRUE)
@@ -115,8 +124,8 @@ plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, regio
   ## Basemap 
   
   if(!region.plot) {
-    bm <- PlotSvalbard::basemap("panarctic", limits = limits, land.col = "grey80", base_size = base_size, ...)
-    # debug alternative: bm <- PlotSvalbard::basemap("panarctic", limits = limits, land.col = "grey", base_size = 8)
+    bm <- ggOceanMaps::basemap(limits = limits, shapefiles = "Arctic", base_size = base_size, land.col = land.col, verbose = FALSE, ...)
+    # debug alternative: bm <- ggOceanMaps::basemap("panarctic", limits = limits, land.col = "grey", base_size = 8)
   }
   
   ## Maps
@@ -128,10 +137,9 @@ plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, regio
     if(!region.plot) {
       
       bm + 
-        ggspatial::geom_spatial_polygon(data = poldt, aes(x = lon, y = lat, group = group), fill = "#449BCF", color = "#449BCF", size = PlotSvalbard::LS(1), alpha = 0.3, crs = 4326) +
+        ggspatial::geom_spatial_polygon(data = poldt, aes(x = lon, y = lat, group = group), fill = "#449BCF", color = "#449BCF", size = ggOceanMaps::LS(1), alpha = 0.3, crs = 4326) +
         geom_point(data = pointdt[pointdt$fit,], aes(x = lon, y = lat), pch = 21, color = "#82C893") +
-        geom_point(data = pointdt[!pointdt$fit,], aes(x = lon, y = lat), pch = 21, color = "#FF5F68") +
-        add_land() + {
+        geom_point(data = pointdt[!pointdt$fit,], aes(x = lon, y = lat), pch = 21, color = "#FF5F68") +{
           if(!axis.labels) theme(axis.title = element_blank(), 
                                  axis.text = element_blank(), 
                                  axis.ticks = element_blank(),
@@ -148,40 +156,42 @@ plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, regio
     
     if(!region.plot) {
       
-      bm +
+      p <- bm +
         geom_hex(data = x$hexagon$all$unique_mod, 
-                 aes(x = lon, y = lat), fill = "#449BCF", stat = "identity", size = PlotSvalbard::LS(0.5)) +
+                 aes(x = lon, y = lat), fill = "#449BCF", stat = "identity", size = ggOceanMaps::LS(0.5)) +
         geom_hex(data = x$hexagon$all$unique_obs, 
-                 aes(x = lon, y = lat), fill = "#FF5F68", stat = "identity", size = PlotSvalbard::LS(0.5)) +
+                 aes(x = lon, y = lat, alpha = count_bin2), fill = "#FF5F68", stat = "identity", size = ggOceanMaps::LS(0.5)) +
         geom_hex(data = x$hexagon$all$overlapping, 
-                 aes(x = lon, y = lat), fill = "#82C893", stat = "identity", size = PlotSvalbard::LS(0.5)) + 
-        add_land() + {
+                 aes(x = lon, y = lat), fill = "#82C893", stat = "identity", size = ggOceanMaps::LS(0.5)) + 
+        scale_alpha("N", range = c(0.2, 1), trans = "log") + {
           if(!axis.labels) theme(axis.title = element_blank(), 
                                  axis.text = element_blank(), 
                                  axis.ticks = element_blank(),
                                  axis.ticks.x = element_blank(), 
                                  axis.ticks.y = element_blank()
           )
-        }
+        } +
+        theme(legend.position = "none")
+      
+      ggOceanMaps::reorder_layers(p)
       
     } else {
-      
-      
+    
       reg.plots <- lapply(seq_along(reg.dat), function(i) {
         
         ## Plot
         
-        basemap("panarctic", limits = reg.dat[[i]]$limits, base_size = base_size, land.col = "grey80") +
+        p <- basemap("panarctic", limits = reg.dat[[i]]$limits, base_size = base_size, land.col = land.col, ...) +
           geom_hex(data = x$hexagon$regions[[i]][["unique_mod"]], 
-                   aes(x = lon, y = lat), fill = "#449BCF", stat = "identity", size = PlotSvalbard::LS(0.5)) +
+                   aes(x = lon, y = lat), fill = "#449BCF", stat = "identity", size = ggOceanMaps::LS(0.5)) +
           geom_hex(data = x$hexagon$regions[[i]][["unique_obs"]], 
-                   aes(x = lon, y = lat), fill = "#FF5F68", stat = "identity", size = PlotSvalbard::LS(0.5)) +
+                   aes(x = lon, y = lat, alpha = count_bin2), fill = "#FF5F68", stat = "identity", size = ggOceanMaps::LS(0.5)) +
           geom_hex(data = x$hexagon$regions[[i]][["overlapping"]], 
-                   aes(x = lon, y = lat), fill = "#82C893", stat = "identity", size = PlotSvalbard::LS(0.5)) +
+                   aes(x = lon, y = lat), fill = "#82C893", stat = "identity", size = ggOceanMaps::LS(0.5)) +
           geom_polygon(data = reg.dat[[i]]$reg.pol.dt, 
                        aes(x = lon, y = lat, group = group), 
-                       fill = NA, color = "black", size = PlotSvalbard::LS(0.5), linetype = "longdash") +
-          add_land() + {
+                       fill = NA, color = "black", size = ggOceanMaps::LS(0.5), linetype = "longdash") +
+          scale_alpha("N", range = c(0.2, 1), trans = "log") + {
             if(!is.na(title)) ggtitle(reg.dat[[i]]$reg) } + {
               if(!axis.labels) theme(axis.title = element_blank(), 
                                      axis.text = element_blank(), 
@@ -189,7 +199,8 @@ plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, regio
                                      axis.ticks.x = element_blank(), 
                                      axis.ticks.y = element_blank()
               )
-            }
+            } +
+          theme(legend.position = "none")
         
       })
       
@@ -199,3 +210,30 @@ plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, regio
   } 
   
 }
+
+
+### Scrap code:
+
+# # k <- df[[1]]
+# 
+# 
+# ## Alpha cut
+# # 
+# # tmp <- sapply(df, function(k) {
+# #   if(any(names(k) %in% "count_bin2")) {
+# #     range(k$count_bin2)
+# #   }
+# # })
+# # 
+# # tmp <- range(unname(unlist(tmp)))
+# # alpha.cut <- pretty(tmp)
+# # 
+# # df <- lapply(df, function(k) {
+# #   
+# #   if(any(names(k) %in% "count_bin2")) {
+# #     k$alpha <- as.numeric(cut(k$count_bin2, alpha.cut))
+# #     k
+# #   } else {k}
+# #   
+# # })
+# # 

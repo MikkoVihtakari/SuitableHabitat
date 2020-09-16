@@ -4,12 +4,20 @@
 \alias{plot.SHmod}
 \title{Plot a suitable habitat model on a map}
 \usage{
-\method{plot}{SHmod}(x, limits = "auto", type = "default", legend.position = "right", ...)
+\method{plot}{SHmod}(
+  x,
+  limits = "auto",
+  type = "default",
+  legend.position = "right",
+  base_size = 8,
+  land.col = "grey80",
+  ...
+)
 }
 \arguments{
 \item{x}{\code{SHmod} object from \code{\link{suitable.habitat}} function.}
 
-\item{limits}{Map limits. See \code{\link{basemap}}. The option "auto" (default) limits the map using coordinate range of \code{mod}. Alternatively use a numeric vector as described in \code{\link[PlotSvalbard]{basemap}} documentation.}
+\item{limits}{Map limits. See \code{\link[ggOceanMaps]{basemap}}. The option "auto" (default) limits the map using coordinate range of \code{mod}. Alternatively use a numeric vector as described in \code{\link[ggOceanMaps]{basemap}} documentation.}
 
 \item{type}{Character argument defining the types of model data to be plotted: 
 \itemize{
@@ -22,7 +30,13 @@
 \item \code{"default"} Options \code{"raw"}, \code{"raster"}, and \code{"polygon"} on top of each other.
 }}
 
-\item{...}{Additional arguments. Required by R build checks. Ignore.}
+\item{legend.position}{The position for ggplot2 legend. See the argument with the same name in \link[ggplot2]{theme}.}
+
+\item{base_size}{Base size parameter for ggplot. See \link[ggplot2]{theme_bw}.}
+
+\item{land.col}{Character code specifying the color of land.}
+
+\item{...}{Additional arguments passed to \code{\link[ggOceanMaps]{basemap}}.}
 }
 \description{
 Plot method for \code{\link[=suitable.habitat]{SHmod}} objects.

@@ -11,6 +11,10 @@
 
 rasterize.suitable.habitat <- function(data, proj4, mod.extent = mod.ext, drop.crumbs, res) {
   
+  if("robustness" %in% names(data)) { # Sensitivity analysis switch
+    data$habitat <- data$robustness
+  }
+  
   x <- data[!is.na(data$habitat),] # Remove non-habitat
   
   # To points
@@ -22,7 +26,7 @@ rasterize.suitable.habitat <- function(data, proj4, mod.extent = mod.ext, drop.c
   ext <- raster::extent(mod.extent)
   r <- raster::raster(ext, ncol = res, nrow = res)
   y <- raster::rasterize(p, r, p$habitat, fun = mean)
-  sp::proj4string(y) <- proj4
+  suppressWarnings(sp::proj4string(y) <- proj4)
   
   # Clump disconnected regions
   
@@ -36,5 +40,18 @@ rasterize.suitable.habitat <- function(data, proj4, mod.extent = mod.ext, drop.c
   
   # Subset and replace the value by area
   
-  raster::subs(r, area.tab)
+  out <- raster::subs(r, area.tab)
+  
+  # Replace values by robusness (if sensitivity analysis is applied)
+  
+  if("robustness" %in% names(data)) {
+    out@data@values <- ifelse(!is.na(out@data@values), y@data@values, NA)
+    out@data@names <- "robustness"
+    out@data@min <- min(out@data@values, na.rm = TRUE)
+    out@data@max <- max(out@data@values, na.rm = TRUE)
+  }
+  
+  ## Return
+  
+  out
 }

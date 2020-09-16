@@ -11,11 +11,12 @@ round_any <- function(x, accuracy, f = round) {
 }
 
 
-#' @title Wrapper to \code{\link[smoothr]{smooth_ksmooth}} SpatialPolygonsDataFrames
+#' @title Wrapper to \code{\link[smoothr]{smooth_ksmooth}} SpatialPolygons and SpatialPolygonsDataFrames
 #' @param x SpatialPolygonsDataFrame
 #' @param k The \code{smoothness} parameter in \code{\link[smoothr]{smooth_ksmooth}}
 #' @param N The \code{n} parameter in \code{\link[smoothr]{smooth_ksmooth}}
 #' @import smoothr sp
+#' @importFrom stats na.omit
 #' @keywords internal
 #' @export
 
@@ -38,9 +39,16 @@ ksmooth_polys <- function(x, k, N) {
   })
   
   out <- sp::SpatialPolygons(tp)
-  sp::proj4string(out) <- sp::proj4string(x)
+  suppressWarnings(sp::proj4string(out) <- sp::proj4string(x))
   
-  sp::SpatialPolygonsDataFrame(out, x@data)
+  if("SpatialPolygons" %in% class(x)) {
+    out
+  } else if("SpatialPolygonsDataFrame" %in% class(x)) {
+    sp::SpatialPolygonsDataFrame(out, x@data)
+  } else {
+    stop("x is neither SpatialPolygons nor SpatialPolygonsDataFrame in ksmooth_polys,")
+  }
+  
 }
 
 
@@ -52,5 +60,5 @@ se <- function(x) {
 }
 
 # Define lobal variables
-utils::globalVariables(c("lon", "lat", "habitat", "long", "group", "km", "NEMOdata", "polarStereographic"))
+utils::globalVariables(c("lon", "lat", "habitat", "long", "group", "km", "count_bin2", "level", "lon_cut", "mod.ext", "robustness", "sal", "temp", "depth", "value", "NEMOdata"))
 

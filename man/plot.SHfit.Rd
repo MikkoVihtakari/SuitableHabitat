@@ -12,13 +12,14 @@
   axis.labels = TRUE,
   title = "capitalize",
   base_size = 8,
+  land.col = "grey80",
   ...
 )
 }
 \arguments{
 \item{x}{\code{SHfit} object from the \code{\link{model.fit}} function.}
 
-\item{limits}{Map limits. See \code{\link{basemap}}. The option "auto" (default) limits the map using coordinate range of \code{mod}. Alternatively use a numeric vector as described in \code{\link[PlotSvalbard]{basemap}} documentation.}
+\item{limits}{Map limits. See \code{\link{basemap}}. The option "auto" (default) limits the map using coordinate range of \code{mod}. Alternatively use a numeric vector as described in \code{\link[ggOceanMaps]{basemap}} documentation.}
 
 \item{type}{Character argument defining the types of model data to be plotted: 
 \itemize{
@@ -27,9 +28,17 @@
 \item \code{"raster"} Model fit based on raster grid.
 }}
 
+\item{region.plot}{Logical indicating whether region fit should be plotted}
+
+\item{axis.labels}{Logical indicating whether axis labels should be included to the maps.}
+
 \item{title}{"capitalize", NA, anything else}
 
-\item{...}{Additional arguments to \code{\link[PlotSvalbard]{basemap}}}
+\item{base_size}{Base size parameter for ggplot. See \link[ggplot2]{theme_bw}.}
+
+\item{land.col}{Character code specifying the color of land.}
+
+\item{...}{Additional arguments passed to \code{\link[ggOceanMaps]{basemap}}.}
 }
 \description{
 Plot method for \code{\link[=model.fit]{SHfit}} objects.

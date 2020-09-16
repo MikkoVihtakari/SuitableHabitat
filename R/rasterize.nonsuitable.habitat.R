@@ -7,7 +7,7 @@
 #' @seealso \code{\link{limiting.factors}} \code{\link{plot.SHmod}}  
 #' @export
 
-# data = spdt; proj4 = proj4; mod.extent = mod.ext
+# data = spdt; proj4 = proj4; mod.extent = mod.ext; drop.crumbs = drop.crumbs; res = res
 rasterize.nonsuitable.habitat <- function(data, proj4, mod.extent = mod.ext, drop.crumbs, res) {
   
   # Data
@@ -32,7 +32,8 @@ rasterize.nonsuitable.habitat <- function(data, proj4, mod.extent = mod.ext, dro
   ## Rasterize
   
   y <- raster::rasterize(p, base.raster, p$habitat, fun = mean)
-  sp::proj4string(y) <- proj4
+  
+  suppressWarnings(sp::proj4string(y) <- proj4)
   
   ## Clump disconnected regions
   
@@ -50,7 +51,7 @@ rasterize.nonsuitable.habitat <- function(data, proj4, mod.extent = mod.ext, dro
   ### Non-suitable habitat
   
   y <- raster::rasterize(p, base.raster, p$lim.factor)
-  sp::proj4string(y) <- proj4
+  suppressWarnings(sp::proj4string(y) <- proj4)
   
   # Add other limiting factors
   

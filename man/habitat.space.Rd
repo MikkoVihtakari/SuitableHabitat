@@ -9,11 +9,14 @@ habitat.space(
   cvars,
   log.transform = rep(FALSE, length(cvars)),
   rvar = NULL,
-  grid.size = rep(30, length(cvars)),
+  grid.size = 30,
   grid.limits = NULL,
   method = "kde.binary",
   non.suitable.level = 0.001,
-  chull.correction = TRUE
+  chull.correction = TRUE,
+  sens.n = 100,
+  sens.size = 10000,
+  sens.grid.size = 500
 )
 }
 \arguments{
@@ -43,6 +46,12 @@ Note that setting all limits to orthogonal will lead to a rectangular habitat sp
 \item{non.suitable.level}{a numeric argument defining the KDE probability or frequency of occurrence level for non-suitable habitat. The value can be set between 0 and 1. Defines the edge of the habitat space. Smaller the value, the larger the habitat space.}
 
 \item{chull.correction}{logical indicating whether convex hull (\link{chull}) should be applied to correct concave shapes along the edge of the habitat space.}
+
+\item{sens.n}{integer defining the number of replicate resamplings (bootstrapping) to be done for the sensitivity estimation. This step makes the function slow. Use \code{0} to skip the uncertainty estimation.}
+
+\item{sens.size}{integer defining the number of random samples that should be drawn from \code{data}. See the \code{size} argument for \code{\link[base]{sample}}. Should be sufficiently large but lower than number of rows in \code{data}. Otherwise, replacing will be used.}
+
+\item{sens.grid.size}{integer defininf the number of horizonal and vertical grid cells for sensitivity approximation.}
 }
 \description{
 The function estimates a multivariate habitat space for a species. The results of this function can be used in further plotting and suitable habitat estimation functions in the package.

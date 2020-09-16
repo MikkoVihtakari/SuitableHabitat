@@ -5,7 +5,8 @@
 #' @method plot habitatSpace
 #' @seealso \code{\link{habitat.space}}
 #' @author Mikko Vihtakari
-#' @import ks sp graphics
+#' @import ks sp graphics raster
+#' @importFrom grDevices colorRampPalette
 #' @export
 
 
@@ -35,7 +36,11 @@ plot.habitatSpace <- function(x, ...) {
     graphics::axis(2)
   }
   
-  points(x$kde.object$x, pch = ".", col = "grey")
+  if(!is.null(x$sensitivity)) {
+    plot(raster::raster(x$sensitivity), col = grDevices::colorRampPalette(c("white", "#449BCF"))(100), add = TRUE)
+  }
+  
+  points(x$kde.object$x, pch = ".", col = "grey40", cex = 2)
   
   plot(x$kde.object, cont = c(1, 10, 25, 50, 75, 90, 99), add = T, ...)
   

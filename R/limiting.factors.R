@@ -18,7 +18,7 @@ limiting.factors <- function(habitat.space, var.cols, dt, svars.dt) {
     temp.lims <- unname(habitat.space$habitat.space.chull.sp@bbox[1,])
     depth.lims <- unname(habitat.space$habitat.space.chull.sp@bbox[2,])
   } else {
-    temp.lims <- unname(habitat.space$habitat.space.sp@bbox[s1,])
+    temp.lims <- unname(habitat.space$habitat.space.sp@bbox[1,])
     depth.lims <- unname(habitat.space$habitat.space.sp@bbox[2,])
   }
   

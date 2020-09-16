@@ -2,7 +2,7 @@
 % Please edit documentation in R/internal_utility_functions.R
 \name{ksmooth_polys}
 \alias{ksmooth_polys}
-\title{Wrapper to \code{\link[smoothr]{smooth_ksmooth}} SpatialPolygonsDataFrames}
+\title{Wrapper to \code{\link[smoothr]{smooth_ksmooth}} SpatialPolygons and SpatialPolygonsDataFrames}
 \usage{
 ksmooth_polys(x, k, N)
 }
@@ -14,6 +14,6 @@ ksmooth_polys(x, k, N)
 \item{N}{The \code{n} parameter in \code{\link[smoothr]{smooth_ksmooth}}}
 }
 \description{
-Wrapper to \code{\link[smoothr]{smooth_ksmooth}} SpatialPolygonsDataFrames
+Wrapper to \code{\link[smoothr]{smooth_ksmooth}} SpatialPolygons and SpatialPolygonsDataFrames
 }
 \keyword{internal}

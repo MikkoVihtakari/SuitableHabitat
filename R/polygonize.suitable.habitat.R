@@ -11,19 +11,19 @@
 
 polygonize.suitable.habitat <- function(data, buffer.width, drop.crumbs) {
   
-  pol <- sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(data), as_points = FALSE, merge = TRUE))
+  pol <- suppressWarnings(sf::as_Spatial(sf::st_as_sf(stars::st_as_stars(data), as_points = FALSE, merge = TRUE)))
   
   ## Merge adjacent polygons ###
   
-  pol <- rgeos::gBuffer(pol, byid = TRUE, width = buffer.width)
-  pol <- rgeos::gBuffer(pol, byid = TRUE, width = -buffer.width)
+  pol <- rgeos::gBuffer(pol, byid = FALSE, width = buffer.width)
+  pol <- rgeos::gBuffer(pol, byid = FALSE, width = -buffer.width)
   
-  pol2 <- ksmooth_polys(x = pol, k = 12, N = 5L) # From helpers
+  pol2 <- suppressWarnings(ksmooth_polys(x = pol, k = 12, N = 5L)) # From helpers
   
   ## Return
   
   if (drop.crumbs != 0 & !is.na(drop.crumbs)) {
-    smoothr::drop_crumbs(pol2, units::set_units(drop.crumbs, km^2))
+    suppressWarnings(smoothr::drop_crumbs(pol2, units::set_units(drop.crumbs, km^2)))
   } else {
     pol2
   }

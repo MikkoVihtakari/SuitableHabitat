@@ -4,6 +4,8 @@
 ##' @param ... further arguments passed to \code{\link{print}}.
 ##' @method print SHfit
 ##' @keywords internal
+##' @importFrom utils object.size
+##' @importFrom raster extent
 ##' @export
 ##' @author Mikko Vihtakari
 

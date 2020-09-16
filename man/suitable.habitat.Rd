@@ -7,7 +7,7 @@
 suitable.habitat(
   habitat.space,
   oceangr.model = NEMOdata,
-  proj4 = polarStereographic,
+  proj4 = "+init=epsg:3995",
   lat.lim = 40,
   res = 350,
   drop.crumbs = 30000,
@@ -19,7 +19,7 @@ suitable.habitat(
 \arguments{
 \item{habitat.space}{An object from the \code{\link{habitat.space}} function.}
 
-\item{oceangr.model}{A list of oceanographic model data. The format should follow that examplified in the \link{NEMOdata} object.}
+\item{oceangr.model}{A list of oceanographic model data. The format should follow that exemplified in the \link{NEMOdata} object.}
 
 \item{proj4}{Character argument specifying the \link[sp]{proj4string} (projection) for the smoothed polygon output.}
 
@@ -36,7 +36,7 @@ suitable.habitat(
 \item{find.lim.factors}{Logical indicating whether the function should which factors (if any) make the NEMO grid cell non-suitable habitat.}
 }
 \value{
-Returns a list containing suitable habitat estimates in following formats: 1) \strong{\code{$raw}:} oceanographic model (\code{oceangr.model}) grid cells, 2) \strong{\code{$raster}:} rasterized cells whose resolution is defined by the \code{res} with disconnected regions smaller than the \code{drop.crumbs} parameter removed (in km2), 3) \strong{\code{$polygon}:} polgyonized raster data, and 4) \strong{\code{$hexagon}:} hexagonized raster data. See \code{\link[hexbin]{hexbin}}.
+Returns a list containing suitable habitat estimates in following formats: 1) \strong{\code{$raw}:} oceanographic model (\code{oceangr.model}) grid cells, 2) \strong{\code{$raster}:} rasterized cells whose resolution is defined by the \code{res} with disconnected regions smaller than the \code{drop.crumbs} parameter removed (in km2), 3) \strong{\code{$polygon}:} polygonized raster data, and 4) \strong{\code{$hexagon}:} hexagonized raster data. See \code{\link[hexbin]{hexbin}}.
 }
 \description{
 Estimates suitable habitat for a species from European Modeling of the Ocean (NEMO) physical oceanography model output based on limitations set by temperature, salinity and bottom depth.

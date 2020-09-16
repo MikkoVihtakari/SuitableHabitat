@@ -4,6 +4,7 @@
 ##' @param ... further arguments passed to \code{\link{print}}.
 ##' @method print SHmod
 ##' @keywords internal
+##' @importFrom utils object.size
 ##' @export
 ##' @author Mikko Vihtakari
 
