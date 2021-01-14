@@ -188,8 +188,11 @@ plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, regio
           geom_hex(data = x$hexagon$regions[[i]][["unique_obs"]], 
                    aes(x = lon, y = lat, alpha = count_bin2), fill = "#FF5F68", stat = "identity", size = ggOceanMaps::LS(0.5)) +
           geom_hex(data = x$hexagon$regions[[i]][["overlapping"]], 
-                   aes(x = lon, y = lat), fill = "#82C893", stat = "identity", size = ggOceanMaps::LS(0.5)) +
-          geom_polygon(data = reg.dat[[i]]$reg.pol.dt, 
+                   aes(x = lon, y = lat), fill = "#82C893", stat = "identity", size = ggOceanMaps::LS(0.5))
+        
+        p <- ggOceanMaps::reorder_layers(p)
+        
+        p <- p + geom_polygon(data = reg.dat[[i]]$reg.pol.dt, 
                        aes(x = lon, y = lat, group = group), 
                        fill = NA, color = "black", size = ggOceanMaps::LS(0.5), linetype = "longdash") +
           scale_alpha("N", range = c(0.2, 1), trans = "log") + {
