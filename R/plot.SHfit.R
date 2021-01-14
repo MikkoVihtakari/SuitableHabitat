@@ -23,10 +23,11 @@
 #' @importFrom cowplot plot_grid
 #' @export
 
+# x = juv_mod_fit
 # limits = "auto"; type = x$parameters$fit.method; region.plot = x$parameters$regions; axis.labels = TRUE; title = "capitalize"; base_size = 8; land.col = "grey80"
 plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, region.plot = x$parameters$regions, axis.labels = TRUE, title = "capitalize", base_size = 8, land.col = "grey80", ...) {
   
-  # Tests & definitions
+  # Tests & definitions ####
   
   if(!type %in% c("raster", "polygon", "hexagon")) stop("Invalid type argument. Use one of following: 'raster', 'polygon', or 'hexagon'")
   
@@ -73,7 +74,7 @@ plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, regio
     } else {
       
       reg.dat <- lapply(x$hexagon$regions, function(k) {
-        
+        # print(as.character(unique(k$unique_mod$region)))
         reg <- as.character(unique(k[[1]]$region))
         
         ## Region borders
@@ -121,11 +122,11 @@ plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, regio
     }
   } 
   
-  ## Basemap 
+  ## Basemap ####
   
   if(!region.plot) {
     bm <- ggOceanMaps::basemap(limits = limits, shapefiles = "Arctic", base_size = base_size, land.col = land.col, verbose = FALSE, ...)
-    # debug alternative: bm <- ggOceanMaps::basemap("panarctic", limits = limits, land.col = "grey", base_size = 8)
+    # debug alternative: bm <- ggOceanMaps::basemap(limits = limits, shapefiles = "Arctic", base_size = base_size, land.col = land.col, verbose = FALSE)
   }
   
   ## Maps
@@ -181,7 +182,7 @@ plot.SHfit <- function(x, limits = "auto", type = x$parameters$fit.method, regio
         
         ## Plot
         
-        p <- basemap("panarctic", limits = reg.dat[[i]]$limits, base_size = base_size, land.col = land.col, ...) +
+        p <- ggOceanMaps::basemap(limits = reg.dat[[i]]$limits, shapefiles = "Arctic", base_size = base_size, land.col = land.col, verbose = FALSE, ...) +
           geom_hex(data = x$hexagon$regions[[i]][["unique_mod"]], 
                    aes(x = lon, y = lat), fill = "#449BCF", stat = "identity", size = ggOceanMaps::LS(0.5)) +
           geom_hex(data = x$hexagon$regions[[i]][["unique_obs"]], 

@@ -1,14 +1,15 @@
 Package: SuitableHabitat
 Type: Package
-Title: SuitableHabitat - estimate habitat spaces for geographic suitable habitat models
-Version: 0.3.0
-Date: 2020-09-15
+Title: Estimate Habitat Spaces for Geographic Suitable Habitat Models
+Version: 0.4.0
+Date: 2021-01-13
 Authors@R: c(person("Mikko", "Vihtakari", email = "mikko.vihtakari@hi.no",
                   role = c("aut", "cre")) 
           )
 URL: https://github.com/MikkoVihtakari/SuitableHabitat
 BugReports: https://github.com/MikkoVihtakari/SuitableHabitat/issues
-Description: This package is currently intended for review-purposes only. Do not use for other purposes yet. 
+Description: Estimates suitable habitats for the ICESJMS paper.
+  This version has not been optimised for other works.
 Depends: R (>= 3.5.0)
 Imports: ggplot2, ks, raster, rgdal, rgeos, sf, smoothr, sp, spatialEco, stars, ggOceanMaps, broom, units, hexbin, ggspatial, cowplot, scales, dplyr
 Suggests: 
